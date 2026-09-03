@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-deep: #050811;
+  --bg-surface: #0b1120;
+  --bg-card: rgba(11, 18, 33, 0.78);
+  --foreground: #f8fafc;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-glow: rgba(16, 185, 129, 0.28);
+  --neon-emerald: #00ff87;
+  --neon-cyan: #00d2ff;
+  --neon-purple: #a855f7;
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--bg-deep);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 100% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 0% 60%, rgba(168, 85, 247, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* Luxurious Glassmorphism */
+.glass-card {
+  background: rgba(11, 18, 33, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-glow {
+  background: rgba(11, 18, 33, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(16, 185, 129, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.neon-border-emerald {
+  border: 1px solid rgba(0, 255, 135, 0.35);
+  box-shadow: 0 0 20px rgba(0, 255, 135, 0.18), inset 0 0 10px rgba(0, 255, 135, 0.05);
+}
+
+.neon-border-cyan {
+  border: 1px solid rgba(0, 210, 255, 0.35);
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.18), inset 0 0 10px rgba(0, 210, 255, 0.05);
+}
+
+/* Gradient Text Utilities */
+.text-gradient-brand {
+  background: linear-gradient(135deg, #00ff87 0%, #10b981 40%, #00d2ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-silver {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060913;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}
+
+/* Brand specific logo font */
+.brand-font {
+  font-family: 'Outfit', 'Space Grotesk', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+/* High-tech grid background */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+}
+

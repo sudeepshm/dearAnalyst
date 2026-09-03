@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dearAnalyst — Financial Storytelling & Apache ECharts Studio</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Apache ECharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <!-- SheetJS (xlsx) CDN for Excel reading in browser -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#10b981', 600: '#059669' },
+            market: { up: '#10b981', down: '#ef4444', dark: '#080c14', card: '#111827', border: '#334155' }
+          },
+          fontFamily: {
+            brand: ['Space Grotesk', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 0%, #0f1d36 0%, #080c14 75%);
+      color: #f1f5f9;
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+    }
+    .brand-font {
+      font-family: 'Outfit', 'Space Grotesk', sans-serif;
+      letter-spacing: -0.04em;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.82);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-glow {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.12);
+    }
+    .bg-grid-pattern {
+      background-size: 40px 40px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="selection:bg-emerald-500 selection:text-black min-h-screen flex flex-col">
+
+  <!-- ================= VIEW 1: HERO LANDING ================= -->
+  <section id="hero-view" class="relative w-full min-h-screen flex flex-col items-center justify-between px-4 sm:px-8 py-10 overflow-hidden bg-grid-pattern">
+    <div class="w-full max-w-6xl mx-auto flex items-center justify-between pt-4 pb-2 z-10">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 p-0.5 shadow-lg shadow-emerald-500/20">
+          <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-bold text-emerald-400">
+            dA
+          </div>
+        </div>
+        <span class="font-mono text-xs tracking-widest text-slate-400 uppercase font-semibold">
+          FINANCIAL INTELLIGENCE STUDIO
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-mono shadow-inner">
+        <span class="flex h-2 w-2 relative">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <span class="text-slate-400">INDEX: <strong class="text-slate-200">TECH50</strong></span>
+        <span id="hero-price" class="text-emerald-400 font-bold">$184.20</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">+2.84%</span>
+      </div>
+    </div>
+
+    <!-- Centerpiece Candlestick Animation & Brand Title -->
+    <div class="relative w-full max-w-6xl mx-auto flex-1 flex flex-col items-center justify-center my-6 z-10">
+      <div class="absolute inset-0 w-full h-full opacity-65 pointer-events-none rounded-2xl overflow-hidden">
+        <canvas id="candlestick-hero-canvas" class="w-full h-full"></canvas>
+      </div>
+
+      <div class="relative text-center px-4 max-w-3xl mx-auto z-20">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono mb-6 backdrop-blur-md">
+          <span>Interactive Financial Storytelling Studio</span>
+        </div>
+
+        <!-- SPECIFIC FONT & BRAND NAME: dearAnalyst -->
+        <h1 class="brand-font text-6xl sm:text-7xl md:text-8xl font-extrabold tracking-tight text-white mb-6 drop-shadow-2xl">
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-slate-200 to-slate-300 font-light">dear</span><span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 font-extrabold">Analyst</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-300 max-w-xl mx-auto font-normal leading-relaxed mb-8 drop-shadow">
+          Transform raw spreadsheet datasets into rich, animated financial market narratives powered by Apache ECharts, live tooltips, and analyst commentary.
+        </p>
+
+        <!-- THE ASTHETIC THEMATIC START STORY BUTTON -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button
+            onclick="switchView('upload')"
+            class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-base font-bold text-slate-950 bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 overflow-hidden border border-emerald-300/40"
+          >
+            <svg class="w-5 h-5 text-slate-950" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span class="tracking-wide">Start Story</span>
+            <svg class="w-4 h-4 text-slate-900 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col items-center gap-2 text-slate-500 text-xs font-mono z-10">
+      <span>CLICK START STORY TO UPLOAD YOUR EXCEL SHEET</span>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 2: EXCEL UPLOAD BOX ================= -->
+  <section id="upload-view" class="hidden w-full max-w-5xl mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-6">
+      <button onclick="switchView('hero')" class="text-xs font-mono text-slate-400 hover:text-emerald-400 transition">
+        &larr; Return to Home
+      </button>
+      <div class="brand-font text-lg font-bold text-white flex items-center gap-1.5">
+        <span class="text-slate-400">dear</span><span class="text-emerald-400">Analyst</span>
+      </div>
+    </div>
+
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
+        Step 1: Spreadsheet Ingestion
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white font-display">
+        Upload Excel Spreadsheet
+      </h2>
+      <p class="text-sm text-slate-400 max-w-lg mx-auto mt-2">
+        Upload any .xlsx, .xls or .csv file. dearAnalyst parses financial fields (Open, High, Low, Close, Volume) automatically.
+      </p>
+    </div>
+
+    <!-- Upload Box -->
+    <div
+      id="drop-zone"
+      class="border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-3xl p-10 text-center glass-card transition cursor-pointer"
+      onclick="document.getElementById('excel-file-input').click()"
+    >
+      <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleFileSelect(event)">
+      
+      <div class="flex flex-col items-center justify-center space-y-4">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        </div>
+        <div>
+          <p class="text-base sm:text-lg font-semibold text-slate-100">Click to browse or drag & drop Excel sheet</p>
+          <p class="text-xs text-slate-400 mt-1">Accepts Microsoft Excel (.xlsx, .xls) and CSV (.csv)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Load Sample Data -->
+    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-card border border-slate-800">
+      <div>
+        <h4 class="text-sm font-semibold text-slate-200">Want to explore with pre-loaded market data?</h4>
+        <p class="text-xs text-slate-400">Instantly load 60 trading days of simulated market candlestick and volume data.</p>
+      </div>
+      <button
+        onclick="loadBuiltInSampleData()"
+        class="px-4 py-2 rounded-xl text-xs font-mono font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-600/50 hover:bg-emerald-900/50 transition flex items-center gap-2"
+      >
+        <span>Load 60-Day Market Sample</span> &rarr;
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 3: MULTI-PAGE STORY STUDIO ================= -->
+  <section id="studio-view" class="hidden w-full max-w-7xl mx-auto px-4 py-6 flex-1 flex flex-col space-y-6">
+    <!-- Top Bar: Story Title & Irrespective of pages Download Button -->
+    <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 border border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-slate-950">
+          dA
+        </div>
+        <div>
+          <input
+            type="text"
+            id="story-title-input"
+            value="dearAnalyst Market Intelligence Story"
+            class="text-base sm:text-lg font-bold text-white bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-400 focus:outline-none transition px-1"
+          />
+          <p id="active-file-label" class="text-xs font-mono text-slate-400">Active File: sample_market_data.xlsx</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="switchView('upload')" class="px-3 py-1.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition">
+          Switch Excel
+        </button>
+        <button onclick="addNewSlide()" class="px-3 py-1.5 rounded-xl text-xs font-mono text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-700/50 transition">
+          + Add New Page
+        </button>
+        <!-- DOWNLOAD STORY OPTION IRRESPECTIVE OF PAGES -->
+        <button
+          onclick="openDownloadModal()"
+          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:scale-[1.02] shadow-lg shadow-emerald-500/25 transition flex items-center gap-2 border border-emerald-300/40"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download Story</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Slide Tabs -->
+    <div id="slide-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1"></div>
+
+    <!-- Main Studio Workspace Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Left Column: Controls (Select Graph, Map Fields, Add-Interact) -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 space-y-4">
+          <!-- Sub-Tab Switcher -->
+          <div class="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+            <button id="tab-fields-btn" onclick="setStudioTab('fields')" class="flex-1 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-medium">
+              Select Graph & Fields
+            </button>
+            <button id="tab-interact-btn" onclick="setStudioTab('interact')" class="flex-1 py-1.5 rounded-lg text-slate-400 hover:text-slate-200">
+              Add-Interact Features
+            </button>
+          </div>
+
+          <!-- Section A: Graph & Fields -->
+          <div id="subtab-fields" class="space-y-4">
+            <div>
+              <label class="block text-xs font-mono uppercase text-slate-400 mb-2">1. Graph Type</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="setGraphType('candlestick')" id="btn-chart-candlestick" class="p-2 rounded-xl border border-emerald-400 bg-emerald-950/40 text-emerald-300 text-xs font-mono text-center">Candlestick</button>
+                <button onclick="setGraphType('line')" id="btn-chart-line" class="p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center">Line</button>
+                <button onclick="setGraphType('bar')" id="btn-chart-bar" class="p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center">Bar / Vol</button>
+                <button onclick="setGraphType('area')" id="btn-chart-area" class="p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center">Area</button>
+                <button onclick="setGraphType('scatter')" id="btn-chart-scatter" class="p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center">Scatter</button>
+                <button onclick="setGraphType('pie')" id="btn-chart-pie" class="p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center">Pie / Donut</button>
+              </div>
+            </div>
+
+            <!-- Field Selectors -->
+            <div id="field-selectors-container" class="space-y-3 pt-2 border-t border-slate-800"></div>
+          </div>
+
+          <!-- Section B: Add-Interact Features -->
+          <div id="subtab-interact" class="hidden space-y-4">
+            <div class="space-y-2">
+              <label class="block text-xs font-mono uppercase text-emerald-400">Titles & Axis Names</label>
+              <div>
+                <span class="text-[11px] font-mono text-slate-400">Graph Title:</span>
+                <input type="text" id="input-chart-title" oninput="handleChartParamChange()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="text-[11px] font-mono text-slate-400">X-Axis Name:</span>
+                  <input type="text" id="input-x-label" oninput="handleChartParamChange()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                </div>
+                <div>
+                  <span class="text-[11px] font-mono text-slate-400">Y-Axis Name:</span>
+                  <input type="text" id="input-y-label" oninput="handleChartParamChange()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 pt-2 border-t border-slate-800">
+              <label class="block text-xs font-mono uppercase text-emerald-400">Interactions (Tooltips, Mousehover, Zoom)</label>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-xs">
+                <span>Interactive Tooltips</span>
+                <input type="checkbox" id="check-tooltip" checked onchange="handleChartParamChange()" class="w-4 h-4 text-emerald-500 rounded">
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-xs">
+                <span>Mousehover Crosshairs</span>
+                <input type="checkbox" id="check-hover" checked onchange="handleChartParamChange()" class="w-4 h-4 text-emerald-500 rounded">
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-xs">
+                <span>DataZoom Slider</span>
+                <input type="checkbox" id="check-zoom" checked onchange="handleChartParamChange()" class="w-4 h-4 text-emerald-500 rounded">
+              </div>
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800 text-xs">
+                <span>Chart Legend</span>
+                <input type="checkbox" id="check-legend" checked onchange="handleChartParamChange()" class="w-4 h-4 text-emerald-500 rounded">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Visualizer + Side Narrative Text Box + Save & Next Page -->
+      <div class="lg:col-span-8 space-y-6">
+        <!-- Visualizer -->
+        <div class="glass-glow rounded-2xl p-5 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-sm font-bold text-slate-100 font-display uppercase tracking-wider flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="visualizer-badge">LIVE ECHARTS VISUALIZER</span>
+            </h3>
+            <span class="text-xs font-mono text-emerald-400">Apache ECharts 5.5</span>
+          </div>
+
+          <div id="studio-echart-canvas" class="w-full h-[380px] rounded-xl bg-slate-950/80"></div>
+        </div>
+
+        <!-- Narrative Text Box & Save/Next Page -->
+        <div class="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 border-l-4 border-l-emerald-400">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2">
+              Analyst Story Narrative (Page <span id="narrative-page-num">1</span>)
+            </h4>
+            <span class="text-xs font-mono text-slate-400">Add observations, thesis, and notes</span>
+          </div>
+
+          <textarea
+            id="slide-narrative-textarea"
+            rows="4"
+            oninput="handleNarrativeInput(event)"
+            placeholder="Add any analytical notes, market drivers, or executive summaries for this page..."
+            class="w-full bg-slate-950/80 border border-slate-700 rounded-xl p-3.5 text-xs sm:text-sm font-sans text-slate-200 leading-relaxed focus:outline-none focus:border-emerald-400"
+          ></textarea>
+
+          <div class="flex items-center justify-between pt-2">
+            <span class="text-xs font-mono text-slate-400">Changes saved to current page</span>
+            <button
+              onclick="saveAndNextPage()"
+              class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:scale-[1.02] shadow-md shadow-emerald-500/20 transition flex items-center gap-2"
+            >
+              <span>Save and Next Page</span> &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DOWNLOAD STORY MODAL ================= -->
+  <div id="download-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="relative w-full max-w-xl glass-glow rounded-3xl p-6 sm:p-8 border border-emerald-500/30 text-slate-100">
+      <button onclick="closeDownloadModal()" class="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white">&times;</button>
+      
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold font-display text-white">Download Complete Story</h3>
+          <p class="text-xs text-slate-400">Export your multi-page interactive narrative irrespective of pages.</p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 mb-6 space-y-2 text-xs font-mono">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Story Title:</span>
+          <span id="modal-story-title" class="font-bold text-emerald-400">Title</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Total Story Pages:</span>
+          <span id="modal-total-pages" class="text-slate-200">2 Pages</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <button
+          onclick="downloadStandaloneHtml()"
+          class="p-4 rounded-2xl bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-500/40 text-left transition flex flex-col justify-between"
+        >
+          <div class="font-bold text-emerald-300 text-sm">Interactive HTML</div>
+          <div class="text-xs text-slate-400 mt-1">Self-contained presentation with Apache ECharts</div>
+          <div class="mt-3 text-xs font-mono font-bold text-emerald-400">Download .HTML &rarr;</div>
+        </button>
+
+        <button
+          onclick="downloadJsonStory()"
+          class="p-4 rounded-2xl bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-500/40 text-left transition flex flex-col justify-between"
+        >
+          <div class="font-bold text-cyan-300 text-sm">JSON Data Package</div>
+          <div class="text-xs text-slate-400 mt-1">Raw story slides, field mappings, and metrics</div>
+          <div class="mt-3 text-xs font-mono font-bold text-cyan-400">Download .JSON &rarr;</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    // --- Global Application State ---
+    let dataset = null;
+    let activeSlideIndex = 0;
+    let chartInstance = null;
+
+    let slides = [
+      {
+        id: 'slide-1',
+        chartType: 'candlestick',
+        chartTitle: 'Asset Price Volatility & Breakdown',
+        xAxisLabel: 'Trading Date',
+        yAxisLabel: 'Price ($ USD)',
+        xField: 'Date',
+        yField: 'Close',
+        openField: 'Open',
+        closeField: 'Close',
+        lowField: 'Low',
+        highField: 'High',
+        narrativeText: "### Market Momentum Analysis\n- Strong consolidation during the opening 20 trading sessions.\n- Breakout supported by volume expansion.\n- Tooltips and crosshairs reveal support around $190-$195.",
+        interactions: { enableTooltip: true, enableHover: true, enableZoom: true, enableLegend: true }
+      },
+      {
+        id: 'slide-2',
+        chartType: 'bar',
+        chartTitle: 'Trading Volume Dynamics',
+        xAxisLabel: 'Timeline',
+        yAxisLabel: 'Volume (Shares)',
+        xField: 'Date',
+        yField: 'Volume',
+        openField: 'Open',
+        closeField: 'Close',
+        lowField: 'Low',
+        highField: 'High',
+        narrativeText: "### Volume Distribution\n- Volume peaked above 7.5M shares during quarterly releases.\n- Institutional presence confirmed by successive accumulation bars.",
+        interactions: { enableTooltip: true, enableHover: true, enableZoom: true, enableLegend: true }
+      }
+    ];
+
+    // --- Candlestick Hero Canvas Animation ---
+    function initHeroAnimation() {
+      const canvas = document.getElementById('candlestick-hero-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const resize = () => {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight || 400;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const candleCount = 45;
+      let basePrice = 175;
+      const candles = [];
+      for (let i = 0; i < candleCount; i++) {
+        const o = basePrice + (Math.random() - 0.48) * 3;
+        const c = o + (Math.random() - 0.47) * 4;
+        const h = Math.max(o, c) + Math.random() * 2.5;
+        const l = Math.min(o, c) - Math.random() * 2.5;
+        candles.push({ open: o, close: c, high: h, low: l, volume: Math.random() * 50 + 20 });
+        basePrice = c;
+      }
+
+      let frame = 0;
+      function render() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const w = canvas.width;
+        const h = canvas.height;
+        const spacing = w / candleCount;
+        const candleW = Math.max(5, spacing * 0.65);
+
+        if (frame % 20 === 0) {
+          const last = candles[candles.length - 1];
+          const delta = (Math.random() - 0.48) * 0.8;
+          last.close += delta;
+          if (last.close > last.high) last.high = last.close;
+          if (last.close < last.low) last.low = last.close;
+          document.getElementById('hero-price').innerText = '$' + last.close.toFixed(2);
+        }
+
+        const prices = candles.flatMap(c => [c.high, c.low]);
+        const minP = Math.min(...prices) - 5;
+        const maxP = Math.max(...prices) + 5;
+        const getY = v => h - 50 - ((v - minP) / (maxP - minP || 1)) * (h - 100);
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        for (let y = 50; y < h - 50; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(w, y);
+          ctx.stroke();
+        }
+
+        // MA line
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.7)';
+        ctx.lineWidth = 2;
+        candles.forEach((c, idx) => {
+          const x = idx * spacing + spacing / 2;
+          const y = getY((c.open + c.close) / 2);
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Candlesticks
+        candles.forEach((c, idx) => {
+          const x = idx * spacing + spacing / 2;
+          const isUp = c.close >= c.open;
+          const openY = getY(c.open);
+          const closeY = getY(c.close);
+          const highY = getY(c.high);
+          const lowY = getY(c.low);
+          const color = isUp ? '#10b981' : '#ef4444';
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(x, highY);
+          ctx.lineTo(x, lowY);
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          ctx.fillRect(x - candleW / 2, Math.min(openY, closeY), candleW, Math.max(Math.abs(closeY - openY), 2));
+        });
+
+        requestAnimationFrame(render);
+      }
+      render();
+    }
+
+    // --- View Navigation ---
+    function switchView(viewName) {
+      document.getElementById('hero-view').classList.add('hidden');
+      document.getElementById('upload-view').classList.add('hidden');
+      document.getElementById('studio-view').classList.add('hidden');
+
+      if (viewName === 'hero') document.getElementById('hero-view').classList.remove('hidden');
+      if (viewName === 'upload') document.getElementById('upload-view').classList.remove('hidden');
+      if (viewName === 'studio') {
+        document.getElementById('studio-view').classList.remove('hidden');
+        renderStudio();
+      }
+    }
+
+    // --- Built-in Sample Data Generator ---
+    function loadBuiltInSampleData() {
+      const rows = [];
+      let base = 180.0;
+      for (let i = 1; i <= 60; i++) {
+        const d = new Date(2026, 5, i);
+        const dateStr = d.toISOString().split('T')[0];
+        const c = +(base + Math.sin(i / 5) * 15 + (i * 0.4)).toFixed(2);
+        const o = +(c + (Math.random() - 0.5) * 4).toFixed(2);
+        const h = +(Math.max(o, c) + Math.random() * 3).toFixed(2);
+        const l = +(Math.min(o, c) - Math.random() * 3).toFixed(2);
+        const v = Math.floor(Math.random() * 6000000 + 2000000);
+        rows.push({ Date: dateStr, Open: o, High: h, Low: l, Close: c, Volume: v });
+      }
+
+      dataset = {
+        fileName: 'sample_market_data.xlsx',
+        columns: ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'],
+        columnTypes: { Date: 'date', Open: 'number', High: 'number', Low: 'number', Close: 'number', Volume: 'number' },
+        data: rows
+      };
+
+      document.getElementById('active-file-label').innerText = 'Active File: ' + dataset.fileName + ' (' + rows.length + ' rows)';
+      switchView('studio');
+    }
+
+    // --- File Ingestion ---
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        if (!json || json.length === 0) return alert('No data found in uploaded sheet');
+
+        const cols = Object.keys(json[0]);
+        const types = {};
+        cols.forEach(c => {
+          types[c] = !isNaN(Number(json[0][c])) ? 'number' : 'string';
+        });
+
+        dataset = { fileName: file.name, columns: cols, columnTypes: types, data: json };
+        document.getElementById('active-file-label').innerText = 'Active File: ' + file.name + ' (' + json.length + ' rows)';
+        switchView('studio');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // --- Studio Tabs & Interaction ---
+    function setStudioTab(tab) {
+      const fBtn = document.getElementById('tab-fields-btn');
+      const iBtn = document.getElementById('tab-interact-btn');
+      const fSec = document.getElementById('subtab-fields');
+      const iSec = document.getElementById('subtab-interact');
+
+      if (tab === 'fields') {
+        fBtn.className = 'flex-1 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-medium';
+        iBtn.className = 'flex-1 py-1.5 rounded-lg text-slate-400 hover:text-slate-200';
+        fSec.classList.remove('hidden');
+        iSec.classList.add('hidden');
+      } else {
+        iBtn.className = 'flex-1 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-medium';
+        fBtn.className = 'flex-1 py-1.5 rounded-lg text-slate-400 hover:text-slate-200';
+        iSec.classList.remove('hidden');
+        fSec.classList.add('hidden');
+      }
+    }
+
+    function renderStudio() {
+      renderSlideTabs();
+      loadSlideToControls(activeSlideIndex);
+      renderChart();
+    }
+
+    function renderSlideTabs() {
+      const container = document.getElementById('slide-tabs-container');
+      container.innerHTML = '';
+      slides.forEach((s, idx) => {
+        const tab = document.createElement('button');
+        const isActive = idx === activeSlideIndex;
+        tab.className = `px-3.5 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-2 flex-shrink-0 transition ${
+          isActive ? 'bg-emerald-950/60 border-emerald-400 text-emerald-300 shadow' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+        }`;
+        tab.innerHTML = `<span class="w-2 h-2 rounded-full ${isActive ? 'bg-emerald-400' : 'bg-slate-600'}"></span> Page ${idx + 1} (${s.chartType.toUpperCase()})`;
+        tab.onclick = () => {
+          activeSlideIndex = idx;
+          renderStudio();
+        };
+        container.appendChild(tab);
+      });
+    }
+
+    function loadSlideToControls(idx) {
+      const slide = slides[idx];
+      document.getElementById('narrative-page-num').innerText = idx + 1;
+      document.getElementById('slide-narrative-textarea').value = slide.narrativeText || '';
+      document.getElementById('input-chart-title').value = slide.chartTitle || '';
+      document.getElementById('input-x-label').value = slide.xAxisLabel || '';
+      document.getElementById('input-y-label').value = slide.yAxisLabel || '';
+      document.getElementById('check-tooltip').checked = slide.interactions.enableTooltip !== false;
+      document.getElementById('check-hover').checked = slide.interactions.enableHover !== false;
+      document.getElementById('check-zoom').checked = slide.interactions.enableZoom !== false;
+      document.getElementById('check-legend').checked = slide.interactions.enableLegend !== false;
+
+      // Update chart button styles
+      ['candlestick', 'line', 'bar', 'area', 'scatter', 'pie'].forEach(type => {
+        const b = document.getElementById('btn-chart-' + type);
+        if (b) {
+          b.className = slide.chartType === type
+            ? 'p-2 rounded-xl border border-emerald-400 bg-emerald-950/40 text-emerald-300 text-xs font-mono text-center'
+            : 'p-2 rounded-xl border border-slate-800 bg-slate-900/50 text-slate-400 text-xs font-mono text-center';
+        }
+      });
+
+      renderFieldSelectors(slide);
+    }
+
+    function renderFieldSelectors(slide) {
+      const container = document.getElementById('field-selectors-container');
+      container.innerHTML = '';
+      if (!dataset || !dataset.columns) return;
+
+      if (slide.chartType === 'candlestick') {
+        container.innerHTML = `
+          <div>
+            <span class="text-xs font-mono text-slate-400">Date/Time Field:</span>
+            <select id="sel-x" onchange="updateFieldMap('xField', this.value)" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+              ${dataset.columns.map(c => `<option value="${c}" ${c === slide.xField ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div>
+              <span class="text-[10px] font-mono text-slate-400">Open:</span>
+              <select onchange="updateFieldMap('openField', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white">
+                ${dataset.columns.map(c => `<option value="${c}" ${c === (slide.openField || 'Open') ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono text-slate-400">Close:</span>
+              <select onchange="updateFieldMap('closeField', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white">
+                ${dataset.columns.map(c => `<option value="${c}" ${c === (slide.closeField || 'Close') ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono text-slate-400">Low:</span>
+              <select onchange="updateFieldMap('lowField', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white">
+                ${dataset.columns.map(c => `<option value="${c}" ${c === (slide.lowField || 'Low') ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <span class="text-[10px] font-mono text-slate-400">High:</span>
+              <select onchange="updateFieldMap('highField', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-xs text-white">
+                ${dataset.columns.map(c => `<option value="${c}" ${c === (slide.highField || 'High') ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div>
+            <span class="text-xs font-mono text-slate-400">X-Axis (Dimension):</span>
+            <select onchange="updateFieldMap('xField', this.value)" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+              ${dataset.columns.map(c => `<option value="${c}" ${c === slide.xField ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <span class="text-xs font-mono text-slate-400">Y-Axis (Metric):</span>
+            <select onchange="updateFieldMap('yField', this.value)" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+              ${dataset.columns.map(c => `<option value="${c}" ${c === slide.yField ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      }
+    }
+
+    function updateFieldMap(fieldKey, val) {
+      slides[activeSlideIndex][fieldKey] = val;
+      renderChart();
+    }
+
+    function setGraphType(type) {
+      slides[activeSlideIndex].chartType = type;
+      renderStudio();
+    }
+
+    function handleChartParamChange() {
+      const slide = slides[activeSlideIndex];
+      slide.chartTitle = document.getElementById('input-chart-title').value;
+      slide.xAxisLabel = document.getElementById('input-x-label').value;
+      slide.yAxisLabel = document.getElementById('input-y-label').value;
+      slide.interactions.enableTooltip = document.getElementById('check-tooltip').checked;
+      slide.interactions.enableHover = document.getElementById('check-hover').checked;
+      slide.interactions.enableZoom = document.getElementById('check-zoom').checked;
+      slide.interactions.enableLegend = document.getElementById('check-legend').checked;
+      renderChart();
+    }
+
+    function handleNarrativeInput(e) {
+      slides[activeSlideIndex].narrativeText = e.target.value;
+    }
+
+    function saveAndNextPage() {
+      if (activeSlideIndex < slides.length - 1) {
+        activeSlideIndex++;
+      } else {
+        addNewSlide();
+        return;
+      }
+      renderStudio();
+    }
+
+    function addNewSlide() {
+      const num = slides.length + 1;
+      slides.push({
+        id: 'slide-' + Date.now(),
+        chartType: 'line',
+        chartTitle: 'Page ' + num + ' Financial Analysis',
+        xAxisLabel: 'Timeline',
+        yAxisLabel: 'Metric',
+        xField: dataset.columns[0] || 'Date',
+        yField: dataset.columns[1] || 'Close',
+        openField: 'Open', closeField: 'Close', lowField: 'Low', highField: 'High',
+        narrativeText: '### Page ' + num + ' Key Observations\n- Enter detailed narrative here.',
+        interactions: { enableTooltip: true, enableHover: true, enableZoom: true, enableLegend: true }
+      });
+      activeSlideIndex = slides.length - 1;
+      renderStudio();
+    }
+
+    // --- ECharts Visualizer ---
+    function renderChart() {
+      const container = document.getElementById('studio-echart-canvas');
+      if (!chartInstance) {
+        chartInstance = echarts.init(container, 'dark');
+      } else {
+        chartInstance.clear();
+      }
+
+      if (!dataset || !dataset.data) return;
+      const slide = slides[activeSlideIndex];
+      const data = dataset.data;
+      const xData = data.map(d => d[slide.xField] || '');
+
+      let series = [];
+      if (slide.chartType === 'candlestick') {
+        const o = slide.openField || 'Open';
+        const c = slide.closeField || 'Close';
+        const l = slide.lowField || 'Low';
+        const h = slide.highField || 'High';
+        series.push({
+          name: slide.chartTitle || 'Candlestick',
+          type: 'candlestick',
+          data: data.map(d => [Number(d[o]), Number(d[c]), Number(d[l]), Number(d[h])]),
+          itemStyle: { color: '#10b981', color0: '#ef4444', borderColor: '#10b981', borderColor0: '#ef4444' }
+        });
+      } else if (slide.chartType === 'line') {
+        series.push({
+          name: slide.yAxisLabel || slide.yField,
+          type: 'line',
+          smooth: true,
+          data: data.map(d => Number(d[slide.yField]) || 0),
+          itemStyle: { color: '#06b6d4' },
+          lineStyle: { width: 3 }
+        });
+      } else if (slide.chartType === 'bar') {
+        series.push({
+          name: slide.yAxisLabel || slide.yField,
+          type: 'bar',
+          data: data.map(d => Number(d[slide.yField]) || 0),
+          itemStyle: { color: '#10b981' }
+        });
+      } else if (slide.chartType === 'area') {
+        series.push({
+          name: slide.yAxisLabel || slide.yField,
+          type: 'line',
+          smooth: true,
+          data: data.map(d => Number(d[slide.yField]) || 0),
+          itemStyle: { color: '#8b5cf6' },
+          areaStyle: { opacity: 0.4 }
+        });
+      } else if (slide.chartType === 'scatter') {
+        series.push({
+          name: slide.yAxisLabel || slide.yField,
+          type: 'scatter',
+          symbolSize: 8,
+          data: data.map(d => [d[slide.xField], Number(d[slide.yField]) || 0]),
+          itemStyle: { color: '#f59e0b' }
+        });
+      } else if (slide.chartType === 'pie') {
+        series.push({
+          name: slide.chartTitle,
+          type: 'pie',
+          radius: ['35%', '70%'],
+          data: data.slice(0, 8).map(d => ({ name: String(d[slide.xField]), value: Number(d[slide.yField]) || 1 }))
+        });
+      }
+
+      const option = {
+        backgroundColor: 'transparent',
+        title: { text: slide.chartTitle, textStyle: { color: '#f8fafc', fontSize: 15 } },
+        tooltip: slide.interactions.enableTooltip ? {
+          trigger: 'axis',
+          axisPointer: { type: slide.interactions.enableHover ? 'cross' : 'line' }
+        } : { show: false },
+        legend: { show: slide.interactions.enableLegend, textStyle: { color: '#94a3b8' }, right: 10 },
+        grid: slide.chartType !== 'pie' ? { left: '4%', right: '4%', top: 50, bottom: slide.interactions.enableZoom ? 40 : 25, containLabel: true } : undefined,
+        xAxis: slide.chartType !== 'pie' ? { type: 'category', data: xData, name: slide.xAxisLabel, axisLabel: { color: '#94a3b8' } } : undefined,
+        yAxis: slide.chartType !== 'pie' ? { type: 'value', scale: true, name: slide.yAxisLabel, axisLabel: { color: '#94a3b8' } } : undefined,
+        dataZoom: (slide.chartType !== 'pie' && slide.interactions.enableZoom) ? [{ type: 'slider', height: 20 }, { type: 'inside' }] : [],
+        series
+      };
+
+      chartInstance.setOption(option);
+      chartInstance.resize();
+    }
+
+    // --- Story Download & Export (Irrespective of pages) ---
+    function openDownloadModal() {
+      const title = document.getElementById('story-title-input').value;
+      document.getElementById('modal-story-title').innerText = title;
+      document.getElementById('modal-total-pages').innerText = slides.length + ' Pages';
+      document.getElementById('download-modal').classList.remove('hidden');
+    }
+
+    function closeDownloadModal() {
+      document.getElementById('download-modal').classList.add('hidden');
+    }
+
+    function downloadJsonStory() {
+      const title = document.getElementById('story-title-input').value;
+      const blob = new Blob([JSON.stringify({ title, slides, datasetSample: dataset.data.slice(0, 20) }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = title.replace(/\s+/g, '_') + '.json';
+      a.click();
+    }
+
+    function downloadStandaloneHtml() {
+      const title = document.getElementById('story-title-input').value;
+      // We embed the slides and dataset into a clean offline HTML
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><script src="https://cdn.tailwindcss.com"><\/script><script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"><\/script></head><body class="bg-slate-950 text-slate-100 p-8"><h1 class="text-3xl font-bold text-emerald-400 mb-6">${title}</h1><div class="space-y-12">${slides.map((s, i) => `<div class="p-6 bg-slate-900 border border-slate-800 rounded-2xl"><h2 class="text-xl font-bold mb-2">Page ${i+1}: ${s.chartTitle || ''}</h2><p class="text-xs text-slate-400 mb-4">${s.narrativeText.replace(/\n/g, '<br>')}</p><div id="chart-${i}" style="height:350px;"></div></div>`).join('')}</div><script>const slides = ${JSON.stringify(slides)}; const data = ${JSON.stringify(dataset.data)}; slides.forEach((s, idx) => { const c = echarts.init(document.getElementById('chart-' + idx), 'dark'); c.setOption({ backgroundColor: 'transparent', tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: data.map(d => d[s.xField]) }, yAxis: { type: 'value', scale: true }, series: [{ type: s.chartType === 'candlestick' ? 'candlestick' : (s.chartType || 'line'), data: s.chartType === 'candlestick' ? data.map(d => [Number(d[s.openField || 'Open']), Number(d[s.closeField || 'Close']), Number(d[s.lowField || 'Low']), Number(d[s.highField || 'High'])]) : data.map(d => Number(d[s.yField])) }] }); });<\/script></body></html>`;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+      a.download = title.replace(/\s+/g, '_') + '.html';
+      a.click();
+    }
+
+    window.onload = () => {
+      initHeroAnimation();
+    };
+    window.onresize = () => {
+      if (chartInstance) chartInstance.resize();
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "app_name": "dearAnalyst",
+  "theme": "Night Terminal / Financial Dark Mode",
+  "typography": {
+    "heading_font": "JetBrains Mono, monospace",
+    "body_font": "Inter, sans-serif"
+  },
+  "colors": {
+    "charcoal_canvas": "#0B0E14",
+    "terminal_surface": "#121824",
+    "electric_green": "#00FF66",
+    "amber_highlight": "#FFB703",
+    "border_color": "#1E293B",
+    "text_primary": "#F8FAFC",
+    "text_secondary": "#94A3B8"
+  },
+  "image_urls": [
+    {
+      "category": "hero_candlestick",
+      "url": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHxzdG9jayUyMG1hcmtldCUyMGNhbmRsZXN0aWNrJTIwY2hhcnQlMjBmaW5hbmNpYWwlMjBkYXRhfGVufDB8fHx8MTc4NTI4NDk2NXww&ixlib=rb-4.1.0&q=85",
+      "description": "Stock market candlestick chart on dark screen for hero background and animated ticker"
+    }
+  ],
+  "features": [
+    "Animated landing screen with candlestick graph and dearAnalyst brand",
+    "Spreadsheet .xlsx and .csv upload with instant column preview",
+    "Multi-page story builder with add/delete/reorder pages",
+    "Chart type selection (Candlestick, Line, Bar, Area, Scatter, Pie/Donut, Radar, Composed, Histogram, Heatmap, Waterfall, Bubble, Funnel, Box Plot, Sparkline)",
+    "Field mapping (X-axis, Y-axis, Open, High, Low, Close, Volume)",
+    "Axis naming and Chart title customization",
+    "Interactive tooltips, mousehover features, zoom, gridlines, and crosshairs",
+    "Analyst notes side-box for financial storytelling narrative on every page",
+    "Save and continue page flow with persistent storage",
+    "Global and page-level download actions for Shareable HTML Story, PDF, and PowerPoint .pptx"
+  ]
+}
+
