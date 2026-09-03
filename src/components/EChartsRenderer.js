@@ -6,6 +6,11 @@ import * as echarts from 'echarts';
 export default function EChartsRenderer({
   chartType = 'candlestick',
   data = [],
+  columns = [],
+  columnTypes = {},
+  rowHeadingColumn = '',
+  primaryMetricType = 'column',
+  secondaryMetricType = 'column',
   xField = 'Date',
   yField = 'Close',
   y2Field = '',
@@ -55,13 +60,61 @@ export default function EChartsRenderer({
       return;
     }
 
-    const xData = data.map((d) => d[xField] ?? '');
+    const effectiveRowKey = rowHeadingColumn || (columns && columns.find((c) => columnTypes[c] === 'string')) || (columns && columns[0]) || '';
+    const periodCols = columns ? columns.filter((c) => c !== effectiveRowKey) : [];
+
+    const isRowMode = primaryMetricType === 'row' || secondaryMetricType === 'row' || xField === '__periods__';
+
+    let xData = [];
+    let primaryData = [];
+    let secondaryData = [];
+
+    if (isRowMode && (xField === '__periods__' || (primaryMetricType === 'row' && (!y2Field || secondaryMetricType === 'row')))) {
+      // Row-oriented Financial Statement mode:
+      // X-Axis is the sequence of period columns: e.g. ['Mar-19', 'Mar-20', ..., 'Mar-25']
+      xData = periodCols.length > 0 ? periodCols : (columns && columns.length > 0 ? columns : data.map((d) => d[xField] ?? ''));
+
+      if (primaryMetricType === 'row') {
+        const pRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(yField).trim().toLowerCase()) || {};
+        primaryData = xData.map((col) => Number(pRow[col]) || 0);
+      } else {
+        primaryData = data.map((d) => Number(d[yField]) || 0);
+      }
+
+      if (y2Field) {
+        if (secondaryMetricType === 'row') {
+          const sRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(y2Field).trim().toLowerCase()) || {};
+          secondaryData = xData.map((col) => Number(sRow[col]) || 0);
+        } else {
+          secondaryData = data.map((d) => Number(d[y2Field]) || 0);
+        }
+      }
+    } else {
+      // Standard Column-based mapping:
+      xData = data.map((d) => d[xField] ?? '');
+
+      if (primaryMetricType === 'row') {
+        const pRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(yField).trim().toLowerCase()) || {};
+        primaryData = data.map((d) => Number(pRow[d[xField]]) || 0);
+      } else {
+        primaryData = data.map((d) => Number(d[yField]) || 0);
+      }
+
+      if (y2Field) {
+        if (secondaryMetricType === 'row') {
+          const sRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(y2Field).trim().toLowerCase()) || {};
+          secondaryData = data.map((d) => Number(sRow[d[xField]]) || 0);
+        } else {
+          secondaryData = data.map((d) => Number(d[y2Field]) || 0);
+        }
+      }
+    }
 
     // Tooltip configuration
     let tooltip = { trigger: 'item' };
     if (interactions.enableTooltip) {
       tooltip = {
-        trigger: interactions.tooltipTrigger || 'axis',
+        trigger: chartType === 'scatter' ? 'item' : (interactions.tooltipTrigger || 'axis'),
         axisPointer: {
           type: interactions.axisPointerType || 'cross',
           crossStyle: { color: '#10b981', width: 1 },
@@ -155,7 +208,6 @@ export default function EChartsRenderer({
       }
     } else if (chartType === 'combo') {
       // Dual-Axis Combo: Bar (Left Y-Axis) & Line (Right Y-Axis)
-      const primaryData = data.map((d) => Number(d[yField]) || 0);
       series.push({
         name: yAxisLabel || yField,
         type: 'bar',
@@ -171,7 +223,6 @@ export default function EChartsRenderer({
       });
 
       const secondaryMetric = y2Field || (data[0]?.Volume !== undefined ? 'Volume' : yField);
-      const secondaryData = data.map((d) => Number(d[secondaryMetric]) || 0);
       series.push({
         name: y2AxisLabel || secondaryMetric,
         type: 'line',
@@ -189,7 +240,7 @@ export default function EChartsRenderer({
         type: 'line',
         yAxisIndex: 0,
         smooth: true,
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: { color: '#10b981' },
         lineStyle: { width: 3, color: '#10b981' },
         symbolSize: 6,
@@ -201,7 +252,7 @@ export default function EChartsRenderer({
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
-        data: data.map((d) => Number(d[secondaryMetric]) || 0),
+        data: secondaryData,
         itemStyle: { color: '#06b6d4' },
         lineStyle: { width: 3, color: '#06b6d4', type: 'dashed' },
         symbolSize: 6,
@@ -212,7 +263,7 @@ export default function EChartsRenderer({
         name: yAxisLabel || yField,
         type: 'bar',
         barGap: '20%',
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: {
           color: '#10b981',
           borderRadius: [4, 4, 0, 0],
@@ -223,11 +274,58 @@ export default function EChartsRenderer({
         series.push({
           name: y2AxisLabel || y2Field,
           type: 'bar',
-          data: data.map((d) => Number(d[y2Field]) || 0),
+          data: secondaryData,
           itemStyle: {
             color: '#8b5cf6',
             borderRadius: [4, 4, 0, 0],
           },
+        });
+      }
+    } else if (chartType === 'horizontal-clustered-bar') {
+      // Clustered Bar Chart (Horizontal): Categories on Y-Axis, Numerical Values on X-Axis
+      series.push({
+        name: xAxisLabel || yField,
+        type: 'bar',
+        barGap: '20%',
+        data: primaryData,
+        itemStyle: {
+          color: '#38bdf8',
+          borderRadius: [0, 4, 4, 0],
+        },
+      });
+
+      if (y2Field) {
+        series.push({
+          name: y2AxisLabel || y2Field,
+          type: 'bar',
+          data: secondaryData,
+          itemStyle: {
+            color: '#8b5cf6',
+            borderRadius: [0, 4, 4, 0],
+          },
+        });
+      }
+    } else if (chartType === 'multi-line') {
+      // Multi-Line Chart: Multiple lines on shared Y-axis scale
+      series.push({
+        name: yAxisLabel || yField,
+        type: 'line',
+        smooth: true,
+        data: primaryData,
+        itemStyle: { color: '#10b981' },
+        lineStyle: { width: 3, color: '#10b981' },
+        symbolSize: 6,
+      });
+
+      if (y2Field) {
+        series.push({
+          name: y2AxisLabel || y2Field,
+          type: 'line',
+          smooth: true,
+          data: secondaryData,
+          itemStyle: { color: '#06b6d4' },
+          lineStyle: { width: 3, color: '#06b6d4' },
+          symbolSize: 6,
         });
       }
     } else if (chartType === 'stacked-bar') {
@@ -236,7 +334,7 @@ export default function EChartsRenderer({
         name: yAxisLabel || yField,
         type: 'bar',
         stack: 'total',
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: { color: '#10b981' },
       });
 
@@ -245,7 +343,7 @@ export default function EChartsRenderer({
           name: y2AxisLabel || y2Field,
           type: 'bar',
           stack: 'total',
-          data: data.map((d) => Number(d[y2Field]) || 0),
+          data: secondaryData,
           itemStyle: {
             color: '#06b6d4',
             borderRadius: [4, 4, 0, 0],
@@ -256,13 +354,14 @@ export default function EChartsRenderer({
       // 100% Stacked Bar: Proportional distribution
       const pData1 = [];
       const pData2 = [];
-      data.forEach((d) => {
-        const v1 = Math.abs(Number(d[yField]) || 0);
-        const v2 = Math.abs(Number(d[y2Field || yField]) || (v1 * 0.4));
-        const total = (v1 + v2) || 1;
-        pData1.push(Number(((v1 / total) * 100).toFixed(1)));
-        pData2.push(Number(((v2 / total) * 100).toFixed(1)));
-      });
+      const count = Math.max(primaryData.length, secondaryData.length || 0);
+      for (let i = 0; i < count; i++) {
+        const v1 = Math.abs(primaryData[i] || 0);
+        const v2 = Math.abs((secondaryData.length > 0 ? secondaryData[i] : (v1 * 0.4)) || 0);
+        const tot = (v1 + v2) || 1;
+        pData1.push(Number(((v1 / tot) * 100).toFixed(1)));
+        pData2.push(Number(((v2 / tot) * 100).toFixed(1)));
+      }
 
       series.push({
         name: yAxisLabel || yField,
@@ -286,7 +385,7 @@ export default function EChartsRenderer({
         type: 'line',
         stack: 'Total',
         smooth: true,
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: { color: '#10b981' },
         lineStyle: { width: 2, color: '#10b981' },
         areaStyle: {
@@ -303,7 +402,7 @@ export default function EChartsRenderer({
           type: 'line',
           stack: 'Total',
           smooth: true,
-          data: data.map((d) => Number(d[y2Field]) || 0),
+          data: secondaryData,
           itemStyle: { color: '#8b5cf6' },
           lineStyle: { width: 2, color: '#8b5cf6' },
           areaStyle: {
@@ -320,8 +419,7 @@ export default function EChartsRenderer({
       const stepValues = [];
       let runningTotal = 0;
 
-      data.forEach((d) => {
-        const val = Number(d[yField]) || 0;
+      primaryData.forEach((val) => {
         if (val >= 0) {
           baseValues.push(Number(runningTotal.toFixed(2)));
           stepValues.push({
@@ -356,16 +454,13 @@ export default function EChartsRenderer({
       });
     } else if (chartType === 'diverging-bar') {
       // Diverging Bar (+/- from 0) + Overlaid Trend Line
-      const barData = data.map((d) => {
-        const val = Number(d[yField]) || 0;
-        return {
-          value: val,
-          itemStyle: {
-            color: val >= 0 ? '#10b981' : '#ef4444',
-            borderRadius: val >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4],
-          },
-        };
-      });
+      const barData = primaryData.map((val) => ({
+        value: val,
+        itemStyle: {
+          color: val >= 0 ? '#10b981' : '#ef4444',
+          borderRadius: val >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4],
+        },
+      }));
 
       series.push({
         name: yAxisLabel || yField,
@@ -378,7 +473,7 @@ export default function EChartsRenderer({
         name: y2AxisLabel || lineMetric,
         type: 'line',
         smooth: true,
-        data: data.map((d) => Number(d[lineMetric]) || 0),
+        data: secondaryData.length > 0 ? secondaryData : primaryData,
         itemStyle: { color: '#06b6d4' },
         lineStyle: { width: 2.5, color: '#06b6d4' },
       });
@@ -387,7 +482,7 @@ export default function EChartsRenderer({
         name: yAxisLabel || yField,
         type: 'line',
         smooth: true,
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: { color: '#06b6d4' },
         lineStyle: { width: 3 },
         symbolSize: 6,
@@ -400,7 +495,7 @@ export default function EChartsRenderer({
       series.push({
         name: yAxisLabel || yField,
         type: 'bar',
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
             { offset: 0, color: '#10b981' },
@@ -418,7 +513,7 @@ export default function EChartsRenderer({
         name: yAxisLabel || yField,
         type: 'line',
         smooth: true,
-        data: data.map((d) => Number(d[yField]) || 0),
+        data: primaryData,
         itemStyle: { color: '#8b5cf6' },
         lineStyle: { width: 2.5, color: '#8b5cf6' },
         areaStyle: {
@@ -433,7 +528,9 @@ export default function EChartsRenderer({
         name: yAxisLabel || yField,
         type: 'scatter',
         symbolSize: 10,
-        data: data.map((d) => [d[xField], Number(d[yField]) || 0]),
+        data: isRowMode
+          ? xData.map((lbl, i) => [i + 1, primaryData[i] || 0])
+          : data.map((d) => [Number(d[xField]) || 0, Number(d[yField]) || 0]),
         itemStyle: { color: '#f59e0b' },
       });
     } else if (chartType === 'pie') {
@@ -448,64 +545,137 @@ export default function EChartsRenderer({
           borderWidth: 2,
         },
         label: { show: true, color: '#94a3b8' },
-        data: data.slice(0, 8).map((d) => ({
-          name: String(d[xField] || 'Item'),
-          value: Number(d[yField]) || 1,
-        })),
+        data: isRowMode
+          ? xData.slice(0, 10).map((col, i) => ({
+              name: String(col),
+              value: Number(primaryData[i]) || 0,
+            }))
+          : data.slice(0, 8).map((d) => ({
+              name: String(d[xField] || 'Item'),
+              value: Number(d[yField]) || 1,
+            })),
       });
     }
 
     const isCartesian = chartType !== 'pie';
     const isDualAxis = ['combo', 'dual-line'].includes(chartType);
+    const isHorizontalBar = chartType === 'horizontal-clustered-bar';
+    const isScatter = chartType === 'scatter';
 
-    const yAxisConfig = isDualAxis
-      ? [
-          {
-            type: 'value',
-            scale: true,
-            name: yAxisLabel || yField,
-            position: 'left',
-            axisLine: { show: true, lineStyle: { color: '#10b981' } },
-            axisLabel: { color: '#94a3b8', fontSize: 11 },
-            splitLine: {
-              show: interactions.showGridLines !== false,
-              lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
-            },
-          },
-          {
-            type: 'value',
-            scale: true,
-            name: y2AxisLabel || y2Field || 'Secondary Metric',
-            position: 'right',
-            axisLine: { show: true, lineStyle: { color: '#06b6d4' } },
-            axisLabel: { color: '#94a3b8', fontSize: 11 },
-            splitLine: { show: false },
-          },
-        ]
-      : chartType === 'stacked-bar-100'
-      ? {
-          type: 'value',
-          min: 0,
-          max: 100,
-          name: '% of Total',
-          axisLabel: { formatter: '{value}%', color: '#94a3b8', fontSize: 11 },
-          splitLine: {
-            show: interactions.showGridLines !== false,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
-          },
-        }
-      : {
+    let yAxisConfig;
+    if (isHorizontalBar) {
+      // Horizontal Clustered Bar: Y-Axis is Categories / Entities
+      yAxisConfig = {
+        type: 'category',
+        data: xData,
+        name: yAxisLabel || 'Category',
+        nameTextStyle: { color: '#64748b', fontSize: 11 },
+        axisLine: { lineStyle: { color: '#334155' } },
+        axisLabel: { color: '#94a3b8', fontSize: 11 },
+        splitLine: { show: false },
+      };
+    } else if (isDualAxis) {
+      yAxisConfig = [
+        {
           type: 'value',
           scale: true,
           name: yAxisLabel || yField,
-          nameTextStyle: { color: '#64748b', fontSize: 11 },
-          axisLine: { lineStyle: { color: '#334155' } },
+          position: 'left',
+          axisLine: { show: true, lineStyle: { color: '#10b981' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: {
             show: interactions.showGridLines !== false,
             lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
           },
+        },
+        {
+          type: 'value',
+          scale: true,
+          name: y2AxisLabel || y2Field || 'Secondary Metric',
+          position: 'right',
+          axisLine: { show: true, lineStyle: { color: '#06b6d4' } },
+          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          splitLine: { show: false },
+        },
+      ];
+    } else if (chartType === 'stacked-bar-100') {
+      yAxisConfig = {
+        type: 'value',
+        min: 0,
+        max: 100,
+        name: '% of Total',
+        axisLabel: { formatter: '{value}%', color: '#94a3b8', fontSize: 11 },
+        splitLine: {
+          show: interactions.showGridLines !== false,
+          lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
+        },
+      };
+    } else {
+      yAxisConfig = {
+        type: 'value',
+        scale: true,
+        name: yAxisLabel || yField,
+        nameTextStyle: { color: '#64748b', fontSize: 11 },
+        axisLine: { lineStyle: { color: '#334155' } },
+        axisLabel: { color: '#94a3b8', fontSize: 11 },
+        splitLine: {
+          show: interactions.showGridLines !== false,
+          lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
+        },
+      };
+    }
+
+    let xAxisConfig;
+    if (isCartesian) {
+      if (isHorizontalBar) {
+        // Horizontal Clustered Bar: X-Axis is Numerical Values
+        xAxisConfig = {
+          type: 'value',
+          scale: true,
+          name: xAxisLabel || yField,
+          nameLocation: 'middle',
+          nameGap: 24,
+          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#334155' } },
+          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          splitLine: {
+            show: interactions.showGridLines !== false,
+            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+          },
         };
+      } else if (isScatter) {
+        // Scatter Plot: X-Axis is Independent Numerical Variable
+        xAxisConfig = {
+          type: 'value',
+          scale: true,
+          name: xAxisLabel || xField,
+          nameLocation: 'middle',
+          nameGap: 24,
+          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#334155' } },
+          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          splitLine: {
+            show: interactions.showGridLines !== false,
+            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+          },
+        };
+      } else {
+        xAxisConfig = {
+          type: 'category',
+          data: xData,
+          name: xAxisLabel || xField,
+          nameLocation: 'middle',
+          nameGap: 24,
+          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#334155' } },
+          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          splitLine: {
+            show: interactions.showGridLines !== false,
+            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+          },
+        };
+      }
+    }
 
     const option = {
       backgroundColor: 'transparent',
@@ -538,22 +708,7 @@ export default function EChartsRenderer({
             containLabel: true,
           }
         : undefined,
-      xAxis: isCartesian
-        ? {
-            type: 'category',
-            data: xData,
-            name: xAxisLabel || xField,
-            nameLocation: 'middle',
-            nameGap: 24,
-            nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
-            axisLine: { lineStyle: { color: '#334155' } },
-            axisLabel: { color: '#94a3b8', fontSize: 11 },
-            splitLine: {
-              show: interactions.showGridLines !== false,
-              lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
-            },
-          }
-        : undefined,
+      xAxis: isCartesian ? xAxisConfig : undefined,
       yAxis: isCartesian ? yAxisConfig : undefined,
       dataZoom: isCartesian ? dataZoom : [],
       series,
@@ -572,6 +727,11 @@ export default function EChartsRenderer({
   }, [
     chartType,
     data,
+    columns,
+    columnTypes,
+    rowHeadingColumn,
+    primaryMetricType,
+    secondaryMetricType,
     xField,
     yField,
     y2Field,

@@ -18,7 +18,8 @@ import {
   GitCompare,
   Sparkles,
   X,
-  BookOpen
+  BookOpen,
+  RotateCcw
 } from 'lucide-react';
 import VisualChartCatalogue from '@/components/VisualChartCatalogue';
 
@@ -28,6 +29,9 @@ export default function AddInteractPanel({
   onSheetChange,
   columns = [],
   columnTypes = {},
+  orientation = 'standard',
+  onOrientationChange,
+  isFinancial = false,
   chartType,
   setChartType,
   xField,
@@ -64,9 +68,11 @@ export default function AddInteractPanel({
     { id: 'candlestick', label: 'Candlestick (OHLC)', icon: CandlestickChart },
     { id: 'combo', label: 'Combo Bar & Line', icon: Layers },
     { id: 'dual-line', label: 'Dual-Axis Line', icon: LineChart },
+    { id: 'multi-line', label: 'Multi-Line Chart', icon: LineChart },
     { id: 'clustered-bar', label: 'Clustered Column', icon: BarChart3 },
+    { id: 'horizontal-clustered-bar', label: 'Clustered Bar (Horiz)', icon: BarChart3 },
     { id: 'stacked-bar', label: 'Stacked Column', icon: BarChart3 },
-    { id: 'stacked-bar-100', label: '100% Stacked Bar', icon: Percent },
+    { id: 'stacked-bar-100', label: '100% Stacked Column', icon: Percent },
     { id: 'stacked-area', label: 'Stacked Area', icon: Layers },
     { id: 'waterfall', label: 'Waterfall Bridge', icon: TrendingUp },
     { id: 'diverging-bar', label: 'Diverging + Line', icon: ArrowUpDown },
@@ -241,64 +247,135 @@ export default function AddInteractPanel({
                 </div>
               </div>
             ) : (
-              /* Standard & Advanced Graph Field Mapping */
+              /* Standard & Advanced Graph Field Mapping with Sheet-Level Orientation */
               <div className="space-y-3">
+                {/* Data Orientation Toggle (Standard Tabular vs Transposed Financial) */}
+                <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono text-slate-300 font-semibold flex items-center gap-1.5">
+                      <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Data Orientation:</span>
+                    </span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                      orientation === 'transposed'
+                        ? 'bg-emerald-950/70 border-emerald-700/60 text-emerald-300 font-bold'
+                        : 'bg-slate-800 border-slate-700 text-slate-300'
+                    }`}>
+                      {orientation === 'transposed' ? 'Financial (Rows = Metrics)' : 'Standard (Cols = Metrics)'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => onOrientationChange && onOrientationChange('standard')}
+                      className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
+                        orientation === 'standard'
+                          ? 'bg-slate-800 text-white border border-slate-700 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Standard (Cols=Metrics)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onOrientationChange && onOrientationChange('transposed')}
+                      className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
+                        orientation === 'transposed'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Transposed (Rows=Metrics)
+                    </button>
+                  </div>
+                  {orientation === 'transposed' && (
+                    <p className="text-[10px] text-emerald-400/90 font-mono mt-1">
+                      ✨ Financial Mode: Rows are accounting metrics, auto-plotted across timeline periods ({columns.length > 1 ? columns.length - 1 : 0} items).
+                    </p>
+                  )}
+                </div>
+
+                {/* X-Axis Selector */}
                 <div>
-                  <span className="text-xs font-mono text-slate-400">X-Axis (Category / Date / Dimension):</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-mono text-slate-400">
+                      {chartType === 'horizontal-clustered-bar' ? 'Y-Axis (Categories / Entities):' :
+                       chartType === 'scatter' ? 'X-Axis (Independent Numerical Variable):' :
+                       orientation === 'transposed' ? 'X-Axis (Temporal Timeline / Periods):' :
+                       'X-Axis (Category / Date / Dimension):'}
+                    </span>
+                  </div>
                   <select
                     value={xField}
                     onChange={(e) => setXField(e.target.value)}
-                    className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
                   >
                     {columns.map((c) => (
-                      <option key={c} value={c}>{c} ({columnTypes[c] || 'type'})</option>
+                      <option key={c} value={c}>
+                        {c} ({columnTypes[c] || 'type'})
+                      </option>
                     ))}
                   </select>
                 </div>
 
+                {/* Primary Metric Selector */}
                 <div>
-                  <span className="text-xs font-mono text-slate-400">
-                    {chartType === 'combo' && 'Primary Metric (Bar, Left Axis):'}
-                    {chartType === 'dual-line' && 'Primary Line Metric (Left Axis):'}
-                    {chartType === 'clustered-bar' && 'Primary Bar Metric:'}
-                    {chartType === 'stacked-bar' && 'Base Bar Metric:'}
-                    {chartType === 'stacked-bar-100' && 'Component A Metric:'}
-                    {chartType === 'stacked-area' && 'Base Area Metric:'}
-                    {chartType === 'waterfall' && 'Step Changes / Values:'}
-                    {chartType === 'diverging-bar' && 'Diverging Bar Metric:'}
-                    {!['combo', 'dual-line', 'clustered-bar', 'stacked-bar', 'stacked-bar-100', 'stacked-area', 'waterfall', 'diverging-bar'].includes(chartType) && 'Y-Axis (Value / Metric):'}
-                  </span>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-mono text-slate-300 font-semibold">
+                      {chartType === 'horizontal-clustered-bar' && 'X-Axis Primary (Numerical Value):'}
+                      {chartType === 'scatter' && 'Y-Axis (Dependent Numerical Variable):'}
+                      {chartType === 'multi-line' && 'Primary Series Metric:'}
+                      {chartType === 'combo' && 'Primary Metric (Bar, Left Axis):'}
+                      {chartType === 'dual-line' && 'Primary Line Metric (Left Axis):'}
+                      {chartType === 'clustered-bar' && 'Primary Bar Metric:'}
+                      {chartType === 'stacked-bar' && 'Base Bar Metric:'}
+                      {chartType === 'stacked-bar-100' && 'Component A Metric:'}
+                      {chartType === 'stacked-area' && 'Base Area Metric:'}
+                      {chartType === 'waterfall' && 'Step Changes / Values:'}
+                      {chartType === 'diverging-bar' && 'Diverging Bar Metric:'}
+                      {!['combo', 'dual-line', 'multi-line', 'clustered-bar', 'horizontal-clustered-bar', 'stacked-bar', 'stacked-bar-100', 'stacked-area', 'waterfall', 'diverging-bar', 'scatter'].includes(chartType) && 'Y-Axis (Primary Metric):'}
+                    </span>
+                  </div>
                   <select
                     value={yField}
                     onChange={(e) => setYField(e.target.value)}
-                    className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
                   >
                     {columns.map((c) => (
-                      <option key={c} value={c}>{c} ({columnTypes[c] || 'type'})</option>
+                      <option key={c} value={c}>
+                        {c} ({columnTypes[c] || 'type'})
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Secondary Metric for Combo, Dual-Axis & Stacked Charts */}
-                {['combo', 'dual-line', 'clustered-bar', 'stacked-bar', 'stacked-bar-100', 'stacked-area', 'diverging-bar'].includes(chartType) && (
+                {/* Secondary Metric for Combo, Dual-Axis, Multi-Line & Stacked Charts */}
+                {['combo', 'dual-line', 'multi-line', 'clustered-bar', 'horizontal-clustered-bar', 'stacked-bar', 'stacked-bar-100', 'stacked-area', 'diverging-bar'].includes(chartType) && (
                   <div>
-                    <span className="text-xs font-mono text-cyan-400 font-semibold">
-                      {chartType === 'combo' && 'Secondary Metric (Line, Right Axis):'}
-                      {chartType === 'dual-line' && 'Line 2 Metric (Right Axis):'}
-                      {chartType === 'clustered-bar' && 'Comparison Bar Metric:'}
-                      {chartType === 'stacked-bar' && 'Stacked Bar Metric:'}
-                      {chartType === 'stacked-bar-100' && 'Component B Metric:'}
-                      {chartType === 'stacked-area' && 'Stacked Area Metric:'}
-                      {chartType === 'diverging-bar' && 'Overlay Trend Line Metric:'}
-                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono text-cyan-400 font-semibold">
+                        {chartType === 'horizontal-clustered-bar' && 'X-Axis Comparison Metric (Numerical):'}
+                        {chartType === 'multi-line' && 'Secondary Series Metric (Numerical / %):'}
+                        {chartType === 'combo' && 'Secondary Metric (Line, Right Axis):'}
+                        {chartType === 'dual-line' && 'Line 2 Metric (Right Axis):'}
+                        {chartType === 'clustered-bar' && 'Comparison Bar Metric:'}
+                        {chartType === 'stacked-bar' && 'Stacked Bar Metric:'}
+                        {chartType === 'stacked-bar-100' && 'Component B Metric:'}
+                        {chartType === 'stacked-area' && 'Stacked Area Metric:'}
+                        {chartType === 'diverging-bar' && 'Overlay Trend Line Metric:'}
+                      </span>
+                    </div>
                     <select
                       value={y2Field || ''}
                       onChange={(e) => setY2Field && setY2Field(e.target.value)}
-                      className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                      className="w-full bg-slate-900 border border-cyan-800/60 rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-400 font-mono shadow-inner"
                     >
                       <option value="">-- None / Select Secondary Metric --</option>
                       {columns.map((c) => (
-                        <option key={c} value={c}>{c} ({columnTypes[c] || 'type'})</option>
+                        <option key={c} value={c}>
+                          {c} ({columnTypes[c] || 'type'})
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -346,24 +423,30 @@ export default function AddInteractPanel({
 
             <div className={`grid ${['combo', 'dual-line'].includes(chartType) ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pt-1`}>
               <div>
-                <span className="text-[11px] font-mono text-slate-400">X-Axis Name:</span>
+                <span className="text-[11px] font-mono text-slate-400">
+                  {chartType === 'horizontal-clustered-bar' ? 'X-Axis Name (Values):' : 'X-Axis Name:'}
+                </span>
                 <input
                   type="text"
                   value={xAxisLabel}
                   onChange={(e) => setXAxisLabel(e.target.value)}
-                  placeholder="e.g. Timeline"
+                  placeholder={chartType === 'horizontal-clustered-bar' ? 'e.g. Value / USD' : 'e.g. Timeline'}
                   className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
                 />
               </div>
               <div>
                 <span className="text-[11px] font-mono text-slate-400">
-                  {['combo', 'dual-line'].includes(chartType) ? 'Left Y-Axis:' : 'Y-Axis Name:'}
+                  {['combo', 'dual-line'].includes(chartType)
+                    ? 'Left Y-Axis:'
+                    : chartType === 'horizontal-clustered-bar'
+                    ? 'Y-Axis Name (Categories):'
+                    : 'Y-Axis Name:'}
                 </span>
                 <input
                   type="text"
                   value={yAxisLabel}
                   onChange={(e) => setYAxisLabel(e.target.value)}
-                  placeholder="e.g. Value / USD"
+                  placeholder={chartType === 'horizontal-clustered-bar' ? 'e.g. Entity / Sector' : 'e.g. Value / USD'}
                   className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
                 />
               </div>

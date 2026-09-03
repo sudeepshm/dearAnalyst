@@ -43,74 +43,107 @@ export default function StorySlideStudio({
     : Object.keys(sheets);
   const defaultSheetName = dataset.activeSheet || sheetNames[0];
 
+  const getSlideDefaultsForSheet = (sheetName) => {
+    const s = sheets[sheetName] || dataset;
+    const isFin = s?.isFinancial || s?.defaultOrientation === 'transposed';
+    const orient = isFin ? 'transposed' : 'standard';
+    const oriented = (orient === 'transposed' && s?.transposed) ? s.transposed : (s?.standard || s || {});
+    const cols = oriented.columns || [];
+    const types = oriented.columnTypes || {};
+
+    if (orient === 'transposed') {
+      const numCols = cols.filter((c) => c !== 'Period');
+      return {
+        sheetName,
+        orientation: 'transposed',
+        chartType: 'combo',
+        xField: 'Period',
+        yField: numCols[0] || cols[1] || 'Metric 1',
+        y2Field: numCols[1] || cols[2] || '',
+        chartTitle: `${sheetName} Trend Over Periods`,
+        chartSubtitle: `Financial statement metric view across timeline periods`,
+        xAxisLabel: 'Fiscal Period',
+        yAxisLabel: numCols[0] || cols[1] || 'Primary Metric',
+        y2AxisLabel: numCols[1] || cols[2] || 'Secondary Metric',
+      };
+    } else {
+      const dateCol = cols.find((c) => types[c] === 'date') || cols[0] || 'Date';
+      const numCols = cols.filter((c) => types[c] === 'number');
+      return {
+        sheetName,
+        orientation: 'standard',
+        chartType: 'candlestick',
+        xField: dateCol,
+        yField: numCols[0] || cols[1] || 'Close',
+        y2Field: numCols[1] || cols[2] || 'Volume',
+        openField: cols.find((c) => /open/i.test(c)) || numCols[0] || cols[0] || 'Open',
+        closeField: cols.find((c) => /close/i.test(c)) || numCols[1] || cols[1] || 'Close',
+        lowField: cols.find((c) => /low/i.test(c)) || numCols[2] || cols[2] || 'Low',
+        highField: cols.find((c) => /high/i.test(c)) || numCols[3] || cols[3] || 'High',
+        chartTitle: `${sheetName} Market Performance`,
+        chartSubtitle: `Detailed chart breakdown on sheet: "${sheetName}"`,
+        xAxisLabel: 'Timeline / Dimension',
+        yAxisLabel: 'Value / Left Axis',
+        y2AxisLabel: 'Right Axis',
+      };
+    }
+  };
+
   // Initial multi-page story state with default sensible financial charts
-  const [slides, setSlides] = useState([
-    {
-      id: 'slide-1',
-      sheetName: defaultSheetName,
-      pageTitle: 'Page 1: Price Action & Candlestick Volatility',
-      chartTitle: 'Asset Daily Price Action (OHLC)',
-      chartSubtitle: `Candlestick breakdown (${defaultSheetName})`,
-      chartType: initialChartType || 'candlestick',
-      xField: 'Date',
-      yField: 'Close',
-      y2Field: 'Volume',
-      openField: 'Open',
-      closeField: 'Close',
-      lowField: 'Low',
-      highField: 'High',
-      xAxisLabel: 'Trading Session',
-      yAxisLabel: 'Stock Price ($ USD)',
-      y2AxisLabel: 'Volume',
-      narrativeText: `### Market Momentum Summary\n- Noticeable consolidation observed in the first 20 trading sessions.\n- Bullish breakout supported by heavy trading volume around session 35.\n- Crosshair tooltips indicate strong buyer support near the $195-$200 psychological barrier.\n\n*Recommendation:* Maintain overweight allocation while trailing stop-losses at the 5-day MA.`,
-      interactions: {
-        enableTooltip: true,
-        tooltipTrigger: 'axis',
-        axisPointerType: 'cross',
-        enableZoom: true,
-        enableMouseHover: true,
-        enableLegend: true,
-        showGridLines: true,
+  const [slides, setSlides] = useState(() => {
+    const s1Def = getSlideDefaultsForSheet(defaultSheetName);
+    const s2Name = sheetNames[1] || defaultSheetName;
+    const s2Def = getSlideDefaultsForSheet(s2Name);
+
+    return [
+      {
+        id: 'slide-1',
+        pageTitle: 'Page 1: Performance & Metric Analysis',
+        chartType: initialChartType || s1Def.chartType,
+        ...s1Def,
+        narrativeText: `### Financial Overview & Trajectory\n- Review metrics across reported periods.\n- Crosshair tooltips show exact period values and trends.\n- Use the Data Orientation toggle above to switch between Financial (Rows=Metrics) and Standard views.`,
+        interactions: {
+          enableTooltip: true,
+          tooltipTrigger: 'axis',
+          axisPointerType: 'cross',
+          enableZoom: true,
+          enableMouseHover: true,
+          enableLegend: true,
+          showGridLines: true,
+        },
       },
-    },
-    {
-      id: 'slide-2',
-      sheetName: sheetNames[1] || defaultSheetName,
-      pageTitle: 'Page 2: Dual-Axis Valuation & Performance',
-      chartTitle: 'Sector Market Cap vs Year Return (%)',
-      chartSubtitle: `Combo Bar & Line on sheet: "${sheetNames[1] || defaultSheetName}"`,
-      chartType: 'combo',
-      xField: sheets[sheetNames[1]]?.columns?.[0] || 'Sector',
-      yField: sheets[sheetNames[1]]?.columns?.find(c => sheets[sheetNames[1]]?.columnTypes?.[c] === 'number') || 'Market_Cap_Billion',
-      y2Field: sheets[sheetNames[1]]?.columns?.filter(c => sheets[sheetNames[1]]?.columnTypes?.[c] === 'number')?.[1] || 'Year_Return_Pct',
-      openField: 'Open',
-      closeField: 'Close',
-      lowField: 'Low',
-      highField: 'High',
-      xAxisLabel: 'Sector',
-      yAxisLabel: 'Market Cap ($B)',
-      y2AxisLabel: 'Return (%)',
-      narrativeText: `### Dual-Axis Combo Breakdown\n- Bars depict total sector capitalization (Left Axis).\n- Overlaid cyan line displays annualized performance percentage (Right Axis).\n- Technology and Clean Energy exhibit the strongest momentum with high growth multiples.`,
-      interactions: {
-        enableTooltip: true,
-        tooltipTrigger: 'axis',
-        axisPointerType: 'cross',
-        enableZoom: true,
-        enableMouseHover: true,
-        enableLegend: true,
-        showGridLines: true,
+      {
+        id: 'slide-2',
+        pageTitle: 'Page 2: Comparative Analysis & Bridge',
+        chartType: 'combo',
+        ...s2Def,
+        narrativeText: `### Dual-Axis Breakdown\n- Primary metric displayed on Left Axis with secondary comparison on Right Axis.\n- Consistent fiscal period alignment ensures no dimensional mismatches.`,
+        interactions: {
+          enableTooltip: true,
+          tooltipTrigger: 'axis',
+          axisPointerType: 'cross',
+          enableZoom: true,
+          enableMouseHover: true,
+          enableLegend: true,
+          showGridLines: true,
+        },
       },
-    },
-  ]);
+    ];
+  });
 
   const currentSlide = slides[activeSlideIndex] || slides[0];
   const currentSlideSheetName = currentSlide.sheetName || defaultSheetName;
-  const activeSheetData = sheets[currentSlideSheetName] || sheets[sheetNames[0]] || {
+  const rawSheet = sheets[currentSlideSheetName] || sheets[sheetNames[0]] || {
     columns: dataset.columns || [],
     columnTypes: dataset.columnTypes || {},
     totalRows: dataset.totalRows || 0,
     data: dataset.data || [],
   };
+
+  const slideOrientation = currentSlide.orientation || rawSheet.defaultOrientation || (rawSheet.isFinancial ? 'transposed' : 'standard');
+  const activeOrientedData = (slideOrientation === 'transposed' && rawSheet.transposed)
+    ? rawSheet.transposed
+    : (rawSheet.standard || rawSheet);
 
   const updateCurrentSlide = (patch) => {
     setSlides((prev) => {
@@ -120,64 +153,47 @@ export default function StorySlideStudio({
     });
   };
 
-  const handleSlideSheetChange = (newSheetName) => {
-    const nextSheet = sheets[newSheetName];
-    if (!nextSheet) return;
-    const nextCols = nextSheet.columns || [];
-    const nextTypes = nextSheet.columnTypes || {};
+  const handleOrientationChange = (newOrientation) => {
+    const s = sheets[currentSlideSheetName] || dataset;
+    const oriented = (newOrientation === 'transposed' && s.transposed) ? s.transposed : (s.standard || s);
+    const cols = oriented.columns || [];
+    const types = oriented.columnTypes || {};
 
-    const dateCol = nextCols.find((c) => nextTypes[c] === 'date') || nextCols[0] || '';
-    const numCols = nextCols.filter((c) => nextTypes[c] === 'number');
-    const yCol = numCols[0] || nextCols[1] || nextCols[0] || '';
-    const y2Col = numCols[1] || nextCols[2] || '';
-
-    const openCol = nextCols.find((c) => /open/i.test(c)) || numCols[0] || nextCols[0] || '';
-    const closeCol = nextCols.find((c) => /close/i.test(c)) || numCols[1] || nextCols[1] || '';
-    const lowCol = nextCols.find((c) => /low/i.test(c)) || numCols[2] || nextCols[2] || '';
-    const highCol = nextCols.find((c) => /high/i.test(c)) || numCols[3] || nextCols[3] || '';
+    let newX, newY, newY2;
+    if (newOrientation === 'transposed') {
+      const numCols = cols.filter((c) => c !== 'Period');
+      newX = 'Period';
+      newY = numCols[0] || cols[1] || '';
+      newY2 = numCols[1] || cols[2] || '';
+    } else {
+      const numCols = cols.filter((c) => types[c] === 'number');
+      newX = cols.find((c) => types[c] === 'date') || cols[0] || '';
+      newY = numCols[0] || cols[1] || '';
+      newY2 = numCols[1] || cols[2] || '';
+    }
 
     updateCurrentSlide({
-      sheetName: newSheetName,
-      xField: dateCol,
-      yField: yCol,
-      y2Field: y2Col,
-      openField: openCol,
-      closeField: closeCol,
-      lowField: lowCol,
-      highField: highCol,
-      chartSubtitle: `Visualizing data from sheet: "${newSheetName}"`,
+      orientation: newOrientation,
+      xField: newX,
+      yField: newY,
+      y2Field: newY2,
     });
+  };
+
+  const handleSlideSheetChange = (newSheetName) => {
+    const defaults = getSlideDefaultsForSheet(newSheetName);
+    updateCurrentSlide(defaults);
   };
 
   const handleAddNewSlide = () => {
     const newSlideNumber = slides.length + 1;
     const slideSheet = currentSlide?.sheetName || defaultSheetName;
-    const targetSheet = sheets[slideSheet] || Object.values(sheets)[0];
-    const targetCols = targetSheet?.columns || [];
-    const targetTypes = targetSheet?.columnTypes || {};
-
-    const dateCol = targetCols.find((c) => targetTypes[c] === 'date') || targetCols[0] || 'Date';
-    const numCols = targetCols.filter((c) => targetTypes[c] === 'number');
-    const numCol = numCols[0] || targetCols[1] || 'Metric';
-    const num2Col = numCols[1] || '';
+    const defaults = getSlideDefaultsForSheet(slideSheet);
 
     const newSlide = {
       id: `slide-${Date.now()}`,
-      sheetName: slideSheet,
-      pageTitle: `Page ${newSlideNumber}: Analysis`,
-      chartTitle: `Visual Analysis (Page ${newSlideNumber})`,
-      chartSubtitle: `Visualizing data from sheet: "${slideSheet}"`,
-      chartType: 'combo',
-      xField: dateCol,
-      yField: numCol,
-      y2Field: num2Col,
-      openField: targetCols.find((c) => /open/i.test(c)) || 'Open',
-      closeField: targetCols.find((c) => /close/i.test(c)) || 'Close',
-      lowField: targetCols.find((c) => /low/i.test(c)) || 'Low',
-      highField: targetCols.find((c) => /high/i.test(c)) || 'High',
-      xAxisLabel: 'Period',
-      yAxisLabel: 'Metric 1',
-      y2AxisLabel: 'Metric 2',
+      pageTitle: `Page ${newSlideNumber}: Analysis Deck`,
+      ...defaults,
       narrativeText: `### Key Observations for Page ${newSlideNumber}\n- Add your analytical insights, drivers, and recommendations here.\n- Cross-reference with the Apache ECharts visualization below.`,
       interactions: {
         enableTooltip: true,
@@ -271,11 +287,16 @@ export default function StorySlideStudio({
             onClick={() => {
               const exportSlides = slides.map((s) => {
                 const sSheetName = s.sheetName || defaultSheetName;
-                const sData = sheets[sSheetName]?.data || dataset.data || [];
+                const sSheet = sheets[sSheetName] || dataset;
+                const sOrient = s.orientation || sSheet.defaultOrientation || (sSheet.isFinancial ? 'transposed' : 'standard');
+                const oriented = (sOrient === 'transposed' && sSheet.transposed) ? sSheet.transposed : (sSheet.standard || sSheet);
                 return {
                   ...s,
                   sheetName: sSheetName,
-                  data: sData,
+                  orientation: sOrient,
+                  data: oriented.data || [],
+                  columns: oriented.columns || [],
+                  columnTypes: oriented.columnTypes || {},
                 };
               });
               onDownloadStory({ storyTitle, slides: exportSlides, sheets });
@@ -348,13 +369,16 @@ export default function StorySlideStudio({
             sheetNames={sheetNames}
             selectedSheet={currentSlideSheetName}
             onSheetChange={handleSlideSheetChange}
-            columns={activeSheetData.columns}
-            columnTypes={activeSheetData.columnTypes}
+            columns={activeOrientedData.columns}
+            columnTypes={activeOrientedData.columnTypes}
+            orientation={slideOrientation}
+            onOrientationChange={handleOrientationChange}
+            isFinancial={rawSheet.isFinancial || false}
             chartType={currentSlide.chartType}
             setChartType={(val) => updateCurrentSlide({ chartType: val })}
-            xField={currentSlide.xField}
+            xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
             setXField={(val) => updateCurrentSlide({ xField: val })}
-            yField={currentSlide.yField}
+            yField={currentSlide.yField || activeOrientedData.columns[1]}
             setYField={(val) => updateCurrentSlide({ yField: val })}
             y2Field={currentSlide.y2Field}
             setY2Field={(val) => updateCurrentSlide({ y2Field: val })}
@@ -429,9 +453,11 @@ export default function StorySlideStudio({
             <div className="w-full h-[400px] rounded-xl bg-slate-950/70 p-2">
               <EChartsRenderer
                 chartType={currentSlide.chartType}
-                data={activeSheetData.data}
-                xField={currentSlide.xField}
-                yField={currentSlide.yField}
+                data={activeOrientedData.data}
+                columns={activeOrientedData.columns}
+                columnTypes={activeOrientedData.columnTypes}
+                xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
+                yField={currentSlide.yField || activeOrientedData.columns[1]}
                 y2Field={currentSlide.y2Field}
                 openField={currentSlide.openField}
                 closeField={currentSlide.closeField}

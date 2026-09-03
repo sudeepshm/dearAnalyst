@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, FileSpreadsheet, CheckCircle2, AlertCircle, Sparkles, ArrowRight, Table } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { parseSheetWithHeaderDetection, pivotFinancialDataset } from '@/utils/excelPivoter';
 
 export default function ExcelUploader({ onDataLoaded, onCancel }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -25,47 +26,43 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
 
       sheetNames.forEach((name) => {
         const activeSheet = workbook.Sheets[name];
-        const jsonData = XLSX.utils.sheet_to_json(activeSheet, { defval: '' });
+        const parsed = parseSheetWithHeaderDetection(activeSheet);
+        const pivoted = pivotFinancialDataset(parsed.rawData, parsed.columns, parsed.columnTypes);
 
-        if (!jsonData || jsonData.length === 0) {
-          sheets[name] = {
-            name,
-            columns: [],
-            columnTypes: {},
-            totalRows: 0,
-            data: [],
-            preview: [],
-          };
-          return;
-        }
-
-        const columns = Object.keys(jsonData[0]);
-        const columnTypes = {};
-
-        columns.forEach((col) => {
-          const samples = jsonData.slice(0, 25).map((r) => r[col]).filter((v) => v !== '' && v !== null);
-          const allNums = samples.length > 0 && samples.every((v) => !isNaN(Number(v)));
-          const allDates = samples.length > 0 && samples.every((v) => {
-            if (v instanceof Date) return true;
-            const p = Date.parse(v);
-            return !isNaN(p) && String(v).length >= 4;
-          });
-
-          if (allNums) columnTypes[col] = 'number';
-          else if (allDates) columnTypes[col] = 'date';
-          else columnTypes[col] = 'string';
-        });
+        const isFinancial = pivoted.isFinancial;
+        const defaultOrientation = isFinancial ? 'transposed' : 'standard';
 
         sheets[name] = {
           name,
-          columns,
-          columnTypes,
-          totalRows: jsonData.length,
-          data: jsonData,
-          preview: jsonData.slice(0, 8),
+          standard: {
+            columns: parsed.columns,
+            columnTypes: parsed.columnTypes,
+            totalRows: parsed.rawData.length,
+            data: parsed.rawData,
+            preview: parsed.rawData.slice(0, 8),
+          },
+          transposed: {
+            isFinancial: pivoted.isFinancial,
+            columns: pivoted.columns,
+            columnTypes: pivoted.columnTypes,
+            totalRows: pivoted.data.length,
+            data: pivoted.data,
+            preview: pivoted.data.slice(0, 8),
+            descriptorColumn: pivoted.descriptorColumn,
+            periodColumns: pivoted.periodColumns,
+          },
+          isFinancial,
+          defaultOrientation,
+          orientation: defaultOrientation,
+          columns: isFinancial ? pivoted.columns : parsed.columns,
+          columnTypes: isFinancial ? pivoted.columnTypes : parsed.columnTypes,
+          totalRows: isFinancial ? pivoted.data.length : parsed.rawData.length,
+          data: isFinancial ? pivoted.data : parsed.rawData,
+          preview: (isFinancial ? pivoted.data : parsed.rawData).slice(0, 8),
+          descriptorColumn: pivoted.descriptorColumn || '',
         };
 
-        if (!firstValidSheet) {
+        if (!firstValidSheet && parsed.rawData.length > 0) {
           firstValidSheet = name;
         }
       });
@@ -83,6 +80,8 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
         totalRows: primary?.totalRows || 0,
         data: primary?.data || [],
         preview: primary?.preview || [],
+        isFinancial: primary?.isFinancial || false,
+        defaultOrientation: primary?.defaultOrientation || 'standard',
       };
 
       setParsedData(result);

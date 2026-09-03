@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
+import { parseSheetWithHeaderDetection, pivotFinancialDataset } from '@/utils/excelPivoter';
 
 export async function POST(request) {
   try {
@@ -26,50 +27,46 @@ export async function POST(request) {
 
     sheetNames.forEach((name) => {
       const sheet = workbook.Sheets[name];
-      const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-      if (!rawData || rawData.length === 0) {
-        sheets[name] = {
-          name,
-          columns: [],
-          columnTypes: {},
-          totalRows: 0,
-          data: [],
-          preview: [],
-        };
-        return;
-      }
+      const parsed = parseSheetWithHeaderDetection(sheet);
+      const pivoted = pivotFinancialDataset(parsed.rawData, parsed.columns, parsed.columnTypes);
 
-      const columns = Object.keys(rawData[0]);
-      const columnTypes = {};
-
-      columns.forEach((col) => {
-        const sampleVals = rawData.slice(0, 25).map((r) => r[col]).filter((v) => v !== '' && v !== null && v !== undefined);
-        const isAllNumbers = sampleVals.length > 0 && sampleVals.every((v) => !isNaN(Number(v)));
-        const isLikelyDate = sampleVals.length > 0 && sampleVals.every((v) => {
-          if (v instanceof Date) return true;
-          const parsed = Date.parse(v);
-          return !isNaN(parsed) && String(v).length >= 4;
-        });
-
-        if (isAllNumbers) {
-          columnTypes[col] = 'number';
-        } else if (isLikelyDate) {
-          columnTypes[col] = 'date';
-        } else {
-          columnTypes[col] = 'string';
-        }
-      });
+      const isFinancial = pivoted.isFinancial;
+      const defaultOrientation = isFinancial ? 'transposed' : 'standard';
 
       sheets[name] = {
         name,
-        columns,
-        columnTypes,
-        totalRows: rawData.length,
-        data: rawData,
-        preview: rawData.slice(0, 10),
+        // Standard Tabular Orientation
+        standard: {
+          columns: parsed.columns,
+          columnTypes: parsed.columnTypes,
+          totalRows: parsed.rawData.length,
+          data: parsed.rawData,
+          preview: parsed.rawData.slice(0, 10),
+        },
+        // Transposed Financial Statement Orientation
+        transposed: {
+          isFinancial: pivoted.isFinancial,
+          columns: pivoted.columns,
+          columnTypes: pivoted.columnTypes,
+          totalRows: pivoted.data.length,
+          data: pivoted.data,
+          preview: pivoted.data.slice(0, 10),
+          descriptorColumn: pivoted.descriptorColumn,
+          periodColumns: pivoted.periodColumns,
+        },
+        // Active configuration (defaults based on whether it is financial)
+        isFinancial,
+        defaultOrientation,
+        orientation: defaultOrientation,
+        columns: isFinancial ? pivoted.columns : parsed.columns,
+        columnTypes: isFinancial ? pivoted.columnTypes : parsed.columnTypes,
+        totalRows: isFinancial ? pivoted.data.length : parsed.rawData.length,
+        data: isFinancial ? pivoted.data : parsed.rawData,
+        preview: (isFinancial ? pivoted.data : parsed.rawData).slice(0, 10),
+        descriptorColumn: pivoted.descriptorColumn || '',
       };
 
-      if (!firstValidSheet) {
+      if (!firstValidSheet && parsed.rawData.length > 0) {
         firstValidSheet = name;
       }
     });
@@ -89,6 +86,8 @@ export async function POST(request) {
       totalRows: primary?.totalRows || 0,
       data: primary?.data || [],
       preview: primary?.preview || [],
+      isFinancial: primary?.isFinancial || false,
+      defaultOrientation: primary?.defaultOrientation || 'standard',
     });
   } catch (error) {
     console.error('Error parsing Excel file:', error);

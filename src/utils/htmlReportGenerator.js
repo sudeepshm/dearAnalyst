@@ -263,8 +263,19 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       let series = [];
       const y2Field = slide.y2Field || '';
       const isDualAxis = ['combo', 'dual-line'].includes(chartType);
+      const isHorizontalBar = chartType === 'horizontal-clustered-bar';
+      const isScatter = chartType === 'scatter';
 
-      let yAxisConfig = isDualAxis
+      let yAxisConfig = isHorizontalBar
+        ? {
+            type: 'category',
+            data: xData,
+            name: slide.yAxisLabel || 'Category',
+            axisLine: { lineStyle: { color: '#475569' } },
+            axisLabel: { color: '#94a3b8' },
+            splitLine: { show: false }
+          }
+        : isDualAxis
         ? [
             {
               name: slide.yAxisLabel || yField,
@@ -382,6 +393,43 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
             type: 'bar',
             data: data.map(d => Number(d[y2Field]) || 0),
             itemStyle: { color: '#8b5cf6', borderRadius: [4, 4, 0, 0] }
+          });
+        }
+      } else if (chartType === 'horizontal-clustered-bar') {
+        series.push({
+          name: slide.xAxisLabel || yField,
+          type: 'bar',
+          barGap: '20%',
+          data: data.map(d => Number(d[yField]) || 0),
+          itemStyle: { color: '#38bdf8', borderRadius: [0, 4, 4, 0] }
+        });
+
+        if (y2Field) {
+          series.push({
+            name: slide.y2AxisLabel || y2Field,
+            type: 'bar',
+            data: data.map(d => Number(d[y2Field]) || 0),
+            itemStyle: { color: '#8b5cf6', borderRadius: [0, 4, 4, 0] }
+          });
+        }
+      } else if (chartType === 'multi-line') {
+        series.push({
+          name: slide.yAxisLabel || yField,
+          type: 'line',
+          smooth: true,
+          data: data.map(d => Number(d[yField]) || 0),
+          itemStyle: { color: '#10b981' },
+          lineStyle: { width: 3, color: '#10b981' }
+        });
+
+        if (y2Field) {
+          series.push({
+            name: slide.y2AxisLabel || y2Field,
+            type: 'line',
+            smooth: true,
+            data: data.map(d => Number(d[y2Field]) || 0),
+            itemStyle: { color: '#06b6d4' },
+            lineStyle: { width: 3, color: '#06b6d4' }
           });
         }
       } else if (chartType === 'stacked-bar') {
@@ -567,7 +615,7 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
           name: slide.yAxisLabel || yField,
           type: 'scatter',
           symbolSize: 10,
-          data: data.map(d => [d[xField], Number(d[yField]) || 0]),
+          data: data.map(d => [Number(d[xField]) || 0, Number(d[yField]) || 0]),
           itemStyle: { color: '#f59e0b' }
         });
       } else if (chartType === 'pie') {
@@ -603,13 +651,29 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
           top: '12%',
           containLabel: true
         },
-        xAxis: chartType === 'pie' ? undefined : {
-          type: 'category',
-          data: xData,
-          name: slide.xAxisLabel || xField,
-          axisLine: { lineStyle: { color: '#475569' } },
-          axisLabel: { color: '#94a3b8' }
-        },
+        xAxis: chartType === 'pie' ? undefined : (
+          isHorizontalBar ? {
+            type: 'value',
+            scale: true,
+            name: slide.xAxisLabel || yField,
+            axisLine: { lineStyle: { color: '#475569' } },
+            axisLabel: { color: '#94a3b8' },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
+          } : isScatter ? {
+            type: 'value',
+            scale: true,
+            name: slide.xAxisLabel || xField,
+            axisLine: { lineStyle: { color: '#475569' } },
+            axisLabel: { color: '#94a3b8' },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
+          } : {
+            type: 'category',
+            data: xData,
+            name: slide.xAxisLabel || xField,
+            axisLine: { lineStyle: { color: '#475569' } },
+            axisLabel: { color: '#94a3b8' }
+          }
+        ),
         yAxis: chartType === 'pie' ? undefined : yAxisConfig,
         dataZoom: chartType === 'pie' ? [] : dataZoom,
         series: series
