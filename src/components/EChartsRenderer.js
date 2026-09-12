@@ -3,6 +3,19 @@
 import React, { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 
+const FINANCIAL_PALETTE = [
+  '#10b981', // Emerald
+  '#06b6d4', // Cyan
+  '#8b5cf6', // Violet
+  '#f59e0b', // Amber
+  '#ec4899', // Pink
+  '#3b82f6', // Blue
+  '#14b8a6', // Teal
+  '#f97316', // Orange
+  '#a855f7', // Purple
+  '#6366f1', // Indigo
+];
+
 export default function EChartsRenderer({
   chartType = 'candlestick',
   data = [],
@@ -14,6 +27,10 @@ export default function EChartsRenderer({
   xField = 'Date',
   yField = 'Close',
   y2Field = '',
+  yFields = [],
+  periodFilter = { preset: 'all' },
+  breakdownMode = 'distribution',
+  compositionPeriod = '',
   openField = 'Open',
   closeField = 'Close',
   lowField = 'Low',
@@ -31,6 +48,7 @@ export default function EChartsRenderer({
     enableMouseHover: true,
     enableLegend: true,
     showGridLines: true,
+    enableAreaShading: false,
   },
   className = '',
 }) {
@@ -61,54 +79,62 @@ export default function EChartsRenderer({
     }
 
     const effectiveRowKey = rowHeadingColumn || (columns && columns.find((c) => columnTypes[c] === 'string')) || (columns && columns[0]) || '';
-    const periodCols = columns ? columns.filter((c) => c !== effectiveRowKey) : [];
-
     const isRowMode = primaryMetricType === 'row' || secondaryMetricType === 'row' || xField === '__periods__';
 
-    let xData = [];
-    let primaryData = [];
-    let secondaryData = [];
+    // 1. Apply Period / Date Timeline Slicing to dataset
+    let filteredData = [...data];
+    if (periodFilter && periodFilter.preset && periodFilter.preset !== 'all' && filteredData.length > 0) {
+      if (periodFilter.preset === 'last_4') {
+        filteredData = filteredData.slice(-4);
+      } else if (periodFilter.preset === 'last_8') {
+        filteredData = filteredData.slice(-8);
+      } else if (periodFilter.preset === 'last_12') {
+        filteredData = filteredData.slice(-12);
+      } else if (periodFilter.preset === 'last_20') {
+        filteredData = filteredData.slice(-20);
+      } else if (periodFilter.preset === 'custom') {
+        const { customStart, customEnd } = periodFilter;
+        const startIdx = customStart !== undefined && customStart !== ''
+          ? filteredData.findIndex((d) => String(d[xField] ?? '') === String(customStart))
+          : -1;
+        const endIdx = customEnd !== undefined && customEnd !== ''
+          ? filteredData.findIndex((d) => String(d[xField] ?? '') === String(customEnd))
+          : -1;
 
-    if (isRowMode && (xField === '__periods__' || (primaryMetricType === 'row' && (!y2Field || secondaryMetricType === 'row')))) {
-      // Row-oriented Financial Statement mode:
-      // X-Axis is the sequence of period columns: e.g. ['Mar-19', 'Mar-20', ..., 'Mar-25']
-      xData = periodCols.length > 0 ? periodCols : (columns && columns.length > 0 ? columns : data.map((d) => d[xField] ?? ''));
-
-      if (primaryMetricType === 'row') {
-        const pRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(yField).trim().toLowerCase()) || {};
-        primaryData = xData.map((col) => Number(pRow[col]) || 0);
-      } else {
-        primaryData = data.map((d) => Number(d[yField]) || 0);
-      }
-
-      if (y2Field) {
-        if (secondaryMetricType === 'row') {
-          const sRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(y2Field).trim().toLowerCase()) || {};
-          secondaryData = xData.map((col) => Number(sRow[col]) || 0);
-        } else {
-          secondaryData = data.map((d) => Number(d[y2Field]) || 0);
-        }
-      }
-    } else {
-      // Standard Column-based mapping:
-      xData = data.map((d) => d[xField] ?? '');
-
-      if (primaryMetricType === 'row') {
-        const pRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(yField).trim().toLowerCase()) || {};
-        primaryData = data.map((d) => Number(pRow[d[xField]]) || 0);
-      } else {
-        primaryData = data.map((d) => Number(d[yField]) || 0);
-      }
-
-      if (y2Field) {
-        if (secondaryMetricType === 'row') {
-          const sRow = data.find((r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(y2Field).trim().toLowerCase()) || {};
-          secondaryData = data.map((d) => Number(sRow[d[xField]]) || 0);
-        } else {
-          secondaryData = data.map((d) => Number(d[y2Field]) || 0);
+        const s = startIdx >= 0 ? startIdx : 0;
+        const e = endIdx >= 0 ? endIdx + 1 : filteredData.length;
+        if (s < e) {
+          filteredData = filteredData.slice(s, e);
         }
       }
     }
+
+    // 2. Establish Effective Multi-Metric Array (seamless backward compatibility)
+    let effectiveYFields = Array.isArray(yFields) && yFields.length > 0
+      ? [...yFields]
+      : [yField, y2Field].filter(Boolean);
+
+    if (effectiveYFields.length === 0 && columns.length > 1) {
+      const fallbackMetric = columns.find((c) => c !== xField && c !== effectiveRowKey) || columns[1];
+      effectiveYFields = [fallbackMetric];
+    }
+
+    // 3. Extract X-Axis Data Points
+    const xData = filteredData.map((d) => d[xField] ?? '');
+
+    // Helper to extract series values for any given metric name
+    const getMetricSeriesData = (metricKey) => {
+      if (isRowMode && primaryMetricType === 'row') {
+        const pRow = filteredData.find(
+          (r) => String(r[effectiveRowKey]).trim().toLowerCase() === String(metricKey).trim().toLowerCase()
+        ) || {};
+        return filteredData.map((d) => Number(pRow[d[xField]]) || 0);
+      }
+      return filteredData.map((d) => Number(d[metricKey]) || 0);
+    };
+
+    const primaryData = getMetricSeriesData(effectiveYFields[0] || yField);
+    const secondaryData = effectiveYFields[1] ? getMetricSeriesData(effectiveYFields[1]) : [];
 
     // Tooltip configuration
     let tooltip = { trigger: 'item' };
@@ -151,13 +177,13 @@ export default function EChartsRenderer({
       });
     }
 
-    // Series generator
+    // Series generator supporting dynamic multi-metric arrays
     let series = [];
     const isCandle = chartType === 'candlestick';
 
     if (isCandle) {
       // Apache ECharts Candlestick expects array order: [open, close, lowest, highest]
-      const candleData = data.map((d) => [
+      const candleData = filteredData.map((d) => [
         Number(d[openField]) || 0,
         Number(d[closeField]) || 0,
         Number(d[lowField]) || 0,
@@ -183,16 +209,16 @@ export default function EChartsRenderer({
       });
 
       // Add a 5-period moving average if enough data
-      if (data.length >= 5) {
+      if (filteredData.length >= 5) {
         const ma5 = [];
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < filteredData.length; i++) {
           if (i < 4) {
             ma5.push('-');
             continue;
           }
           let sum = 0;
           for (let j = 0; j < 5; j++) {
-            sum += Number(data[i - j][closeField]) || 0;
+            sum += Number(filteredData[i - j][closeField]) || 0;
           }
           ma5.push(Number((sum / 5).toFixed(2)));
         }
@@ -207,120 +233,42 @@ export default function EChartsRenderer({
         });
       }
     } else if (chartType === 'combo') {
-      // Dual-Axis Combo: Bar (Left Y-Axis) & Line (Right Y-Axis)
+      // Dual-Axis Combo: Primary metric is Bar (Left Axis), remaining metrics are Lines (Right Axis)
+      const barMetric = effectiveYFields[0] || yField;
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || barMetric,
         type: 'bar',
         yAxisIndex: 0,
-        data: primaryData,
+        data: getMetricSeriesData(barMetric),
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#10b981' },
+            { offset: 0, color: FINANCIAL_PALETTE[0] },
             { offset: 1, color: 'rgba(16, 185, 129, 0.2)' },
           ]),
           borderRadius: [4, 4, 0, 0],
         },
       });
 
-      const secondaryMetric = y2Field || (data[0]?.Volume !== undefined ? 'Volume' : yField);
-      series.push({
-        name: y2AxisLabel || secondaryMetric,
-        type: 'line',
-        yAxisIndex: 1,
-        smooth: true,
-        data: secondaryData,
-        itemStyle: { color: '#06b6d4' },
-        lineStyle: { width: 3, color: '#06b6d4' },
-        symbolSize: 6,
-      });
-    } else if (chartType === 'dual-line') {
-      // Dual-Axis Line: Line 1 (Left Y-Axis) & Line 2 (Right Y-Axis)
-      series.push({
-        name: yAxisLabel || yField,
-        type: 'line',
-        yAxisIndex: 0,
-        smooth: true,
-        data: primaryData,
-        itemStyle: { color: '#10b981' },
-        lineStyle: { width: 3, color: '#10b981' },
-        symbolSize: 6,
-      });
-
-      const secondaryMetric = y2Field || yField;
-      series.push({
-        name: y2AxisLabel || secondaryMetric,
-        type: 'line',
-        yAxisIndex: 1,
-        smooth: true,
-        data: secondaryData,
-        itemStyle: { color: '#06b6d4' },
-        lineStyle: { width: 3, color: '#06b6d4', type: 'dashed' },
-        symbolSize: 6,
-      });
-    } else if (chartType === 'clustered-bar') {
-      // Clustered Column: Primary Bar & Comparison Bar side-by-side
-      series.push({
-        name: yAxisLabel || yField,
-        type: 'bar',
-        barGap: '20%',
-        data: primaryData,
-        itemStyle: {
-          color: '#10b981',
-          borderRadius: [4, 4, 0, 0],
-        },
-      });
-
-      if (y2Field) {
-        series.push({
-          name: y2AxisLabel || y2Field,
-          type: 'bar',
-          data: secondaryData,
-          itemStyle: {
-            color: '#8b5cf6',
-            borderRadius: [4, 4, 0, 0],
-          },
+      const lineMetrics = effectiveYFields.slice(1);
+      if (lineMetrics.length > 0) {
+        lineMetrics.forEach((metric, idx) => {
+          const color = FINANCIAL_PALETTE[(idx + 1) % FINANCIAL_PALETTE.length];
+          series.push({
+            name: metric,
+            type: 'line',
+            yAxisIndex: 1,
+            smooth: true,
+            data: getMetricSeriesData(metric),
+            itemStyle: { color },
+            lineStyle: { width: 3, color },
+            symbolSize: 6,
+          });
         });
-      }
-    } else if (chartType === 'horizontal-clustered-bar') {
-      // Clustered Bar Chart (Horizontal): Categories on Y-Axis, Numerical Values on X-Axis
-      series.push({
-        name: xAxisLabel || yField,
-        type: 'bar',
-        barGap: '20%',
-        data: primaryData,
-        itemStyle: {
-          color: '#38bdf8',
-          borderRadius: [0, 4, 4, 0],
-        },
-      });
-
-      if (y2Field) {
-        series.push({
-          name: y2AxisLabel || y2Field,
-          type: 'bar',
-          data: secondaryData,
-          itemStyle: {
-            color: '#8b5cf6',
-            borderRadius: [0, 4, 4, 0],
-          },
-        });
-      }
-    } else if (chartType === 'multi-line') {
-      // Multi-Line Chart: Multiple lines on shared Y-axis scale
-      series.push({
-        name: yAxisLabel || yField,
-        type: 'line',
-        smooth: true,
-        data: primaryData,
-        itemStyle: { color: '#10b981' },
-        lineStyle: { width: 3, color: '#10b981' },
-        symbolSize: 6,
-      });
-
-      if (y2Field) {
+      } else if (y2Field) {
         series.push({
           name: y2AxisLabel || y2Field,
           type: 'line',
+          yAxisIndex: 1,
           smooth: true,
           data: secondaryData,
           itemStyle: { color: '#06b6d4' },
@@ -328,91 +276,163 @@ export default function EChartsRenderer({
           symbolSize: 6,
         });
       }
-    } else if (chartType === 'stacked-bar') {
-      // Stacked Column: Cumulative vertical bars
+    } else if (chartType === 'dual-line') {
+      // Dual-Axis Line: Metric 1 (Left Y-Axis) & Subsequent Metrics (Right Y-Axis)
+      const leftMetric = effectiveYFields[0] || yField;
       series.push({
-        name: yAxisLabel || yField,
-        type: 'bar',
-        stack: 'total',
-        data: primaryData,
-        itemStyle: { color: '#10b981' },
-      });
-
-      if (y2Field) {
-        series.push({
-          name: y2AxisLabel || y2Field,
-          type: 'bar',
-          stack: 'total',
-          data: secondaryData,
-          itemStyle: {
-            color: '#06b6d4',
-            borderRadius: [4, 4, 0, 0],
-          },
-        });
-      }
-    } else if (chartType === 'stacked-bar-100') {
-      // 100% Stacked Bar: Proportional distribution
-      const pData1 = [];
-      const pData2 = [];
-      const count = Math.max(primaryData.length, secondaryData.length || 0);
-      for (let i = 0; i < count; i++) {
-        const v1 = Math.abs(primaryData[i] || 0);
-        const v2 = Math.abs((secondaryData.length > 0 ? secondaryData[i] : (v1 * 0.4)) || 0);
-        const tot = (v1 + v2) || 1;
-        pData1.push(Number(((v1 / tot) * 100).toFixed(1)));
-        pData2.push(Number(((v2 / tot) * 100).toFixed(1)));
-      }
-
-      series.push({
-        name: yAxisLabel || yField,
-        type: 'bar',
-        stack: 'total',
-        data: pData1,
-        itemStyle: { color: '#10b981' },
-      });
-
-      series.push({
-        name: y2AxisLabel || y2Field || 'Proportion B',
-        type: 'bar',
-        stack: 'total',
-        data: pData2,
-        itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] },
-      });
-    } else if (chartType === 'stacked-area') {
-      // Stacked Area: Multi-layer composition
-      series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || leftMetric,
         type: 'line',
-        stack: 'Total',
+        yAxisIndex: 0,
         smooth: true,
-        data: primaryData,
-        itemStyle: { color: '#10b981' },
-        lineStyle: { width: 2, color: '#10b981' },
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(16, 185, 129, 0.6)' },
-            { offset: 1, color: 'rgba(16, 185, 129, 0.05)' },
-          ]),
-        },
+        data: getMetricSeriesData(leftMetric),
+        itemStyle: { color: FINANCIAL_PALETTE[0] },
+        lineStyle: { width: 3, color: FINANCIAL_PALETTE[0] },
+        symbolSize: 6,
       });
 
-      if (y2Field) {
+      const rightMetrics = effectiveYFields.slice(1);
+      if (rightMetrics.length > 0) {
+        rightMetrics.forEach((metric, idx) => {
+          const color = FINANCIAL_PALETTE[(idx + 1) % FINANCIAL_PALETTE.length];
+          series.push({
+            name: metric,
+            type: 'line',
+            yAxisIndex: 1,
+            smooth: true,
+            data: getMetricSeriesData(metric),
+            itemStyle: { color },
+            lineStyle: { width: 3, color, type: 'dashed' },
+            symbolSize: 6,
+          });
+        });
+      } else if (y2Field) {
         series.push({
           name: y2AxisLabel || y2Field,
           type: 'line',
-          stack: 'Total',
+          yAxisIndex: 1,
           smooth: true,
           data: secondaryData,
-          itemStyle: { color: '#8b5cf6' },
-          lineStyle: { width: 2, color: '#8b5cf6' },
+          itemStyle: { color: '#06b6d4' },
+          lineStyle: { width: 3, color: '#06b6d4', type: 'dashed' },
+          symbolSize: 6,
+        });
+      }
+    } else if (chartType === 'clustered-bar') {
+      // Clustered Column: N bars side-by-side (Solves 3-bar Cash Flow!)
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'bar',
+          barGap: '20%',
+          data: getMetricSeriesData(metric),
+          itemStyle: {
+            color,
+            borderRadius: [4, 4, 0, 0],
+          },
+        });
+      });
+    } else if (chartType === 'horizontal-clustered-bar') {
+      // Horizontal Clustered Bar: N horizontal bars for each category
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'bar',
+          barGap: '20%',
+          data: getMetricSeriesData(metric),
+          itemStyle: {
+            color,
+            borderRadius: [0, 4, 4, 0],
+          },
+        });
+      });
+    } else if (chartType === 'multi-line') {
+      // Multi-Line Chart: N lines on shared scale + optional translucent area shading (Solves PBT vs Net Profit!)
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'line',
+          smooth: true,
+          data: getMetricSeriesData(metric),
+          itemStyle: { color },
+          lineStyle: { width: 3, color },
+          symbolSize: 6,
+          areaStyle: interactions.enableAreaShading ? {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: color + '33' }, // ~20% opacity
+              { offset: 1, color: color + '05' }, // ~2% opacity
+            ]),
+          } : undefined,
+        });
+      });
+    } else if (chartType === 'stacked-bar') {
+      // Stacked Column: N metrics stacked vertically
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'bar',
+          stack: 'total',
+          data: getMetricSeriesData(metric),
+          itemStyle: {
+            color,
+            borderRadius: idx === effectiveYFields.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0],
+          },
+        });
+      });
+    } else if (chartType === 'stacked-bar-100') {
+      // 100% Stacked Bar: Proportional distribution across N metrics
+      const allSeriesData = effectiveYFields.map((f) => getMetricSeriesData(f));
+      const pointCount = xData.length;
+      const normalizedData = effectiveYFields.map(() => []);
+
+      for (let p = 0; p < pointCount; p++) {
+        let sum = 0;
+        for (let f = 0; f < effectiveYFields.length; f++) {
+          sum += Math.abs(allSeriesData[f][p] || 0);
+        }
+        const safeSum = sum || 1;
+        for (let f = 0; f < effectiveYFields.length; f++) {
+          const val = Math.abs(allSeriesData[f][p] || 0);
+          normalizedData[f].push(Number(((val / safeSum) * 100).toFixed(1)));
+        }
+      }
+
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'bar',
+          stack: 'total',
+          data: normalizedData[idx],
+          itemStyle: {
+            color,
+            borderRadius: idx === effectiveYFields.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0],
+          },
+        });
+      });
+    } else if (chartType === 'stacked-area') {
+      // Stacked Area: Multi-layer composition across N metrics
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        series.push({
+          name: metric,
+          type: 'line',
+          stack: 'Total',
+          smooth: true,
+          data: getMetricSeriesData(metric),
+          itemStyle: { color },
+          lineStyle: { width: 2, color },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(139, 92, 246, 0.6)' },
-              { offset: 1, color: 'rgba(139, 92, 246, 0.05)' },
+              { offset: 0, color: color + '99' },
+              { offset: 1, color: color + '0d' },
             ]),
           },
         });
-      }
+      });
     } else if (chartType === 'waterfall') {
       // Financial Waterfall / Bridge Chart
       const baseValues = [];
@@ -447,7 +467,7 @@ export default function EChartsRenderer({
       });
 
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'bar',
         stack: 'waterfall',
         data: stepValues,
@@ -463,12 +483,12 @@ export default function EChartsRenderer({
       }));
 
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'bar',
         data: barData,
       });
 
-      const lineMetric = y2Field || yField;
+      const lineMetric = effectiveYFields[1] || y2Field || effectiveYFields[0] || yField;
       series.push({
         name: y2AxisLabel || lineMetric,
         type: 'line',
@@ -479,7 +499,7 @@ export default function EChartsRenderer({
       });
     } else if (chartType === 'line') {
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'line',
         smooth: true,
         data: primaryData,
@@ -493,7 +513,7 @@ export default function EChartsRenderer({
       });
     } else if (chartType === 'bar') {
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'bar',
         data: primaryData,
         itemStyle: {
@@ -510,7 +530,7 @@ export default function EChartsRenderer({
       });
     } else if (chartType === 'area') {
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'line',
         smooth: true,
         data: primaryData,
@@ -525,36 +545,69 @@ export default function EChartsRenderer({
       });
     } else if (chartType === 'scatter') {
       series.push({
-        name: yAxisLabel || yField,
+        name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'scatter',
         symbolSize: 10,
-        data: isRowMode
-          ? xData.map((lbl, i) => [i + 1, primaryData[i] || 0])
-          : data.map((d) => [Number(d[xField]) || 0, Number(d[yField]) || 0]),
+        data: filteredData.map((d) => [Number(d[xField]) || 0, Number(d[effectiveYFields[0] || yField]) || 0]),
         itemStyle: { color: '#f59e0b' },
       });
     } else if (chartType === 'pie') {
-      series.push({
-        name: chartTitle || yField,
-        type: 'pie',
-        radius: ['35%', '70%'],
-        avoidLabelOverlap: true,
-        itemStyle: {
-          borderRadius: 8,
-          borderColor: '#111827',
-          borderWidth: 2,
-        },
-        label: { show: true, color: '#94a3b8' },
-        data: isRowMode
-          ? xData.slice(0, 10).map((col, i) => ({
-              name: String(col),
-              value: Number(primaryData[i]) || 0,
-            }))
-          : data.slice(0, 8).map((d) => ({
-              name: String(d[xField] || 'Item'),
-              value: Number(d[yField]) || 1,
-            })),
-      });
+      if (breakdownMode === 'composition') {
+        // Mode B: Period Composition (e.g. Depreciation, Interest, Tax for a selected period)
+        const targetPeriod = compositionPeriod || (xData.length > 0 ? xData[xData.length - 1] : '');
+        const periodRow = filteredData.find((d) => String(d[xField] ?? '') === String(targetPeriod)) || filteredData[filteredData.length - 1] || {};
+
+        const pieData = effectiveYFields.map((field) => ({
+          name: field,
+          value: Number(periodRow[field]) || 0,
+        }));
+
+        series.push({
+          name: chartTitle || targetPeriod || 'Composition',
+          type: 'pie',
+          radius: ['35%', '70%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 8,
+            borderColor: '#111827',
+            borderWidth: 2,
+          },
+          color: FINANCIAL_PALETTE,
+          label: {
+            show: true,
+            formatter: '{b}: {c} ({d}%)',
+            color: '#94a3b8',
+          },
+          data: pieData,
+        });
+      } else {
+        // Mode A: Timeline Distribution (e.g. OPM % across all periods)
+        const primaryMetric = effectiveYFields[0] || yField;
+        const metricVals = getMetricSeriesData(primaryMetric);
+        const pieData = xData.map((periodLabel, i) => ({
+          name: String(periodLabel),
+          value: Number(metricVals[i]) || 0,
+        }));
+
+        series.push({
+          name: chartTitle || primaryMetric,
+          type: 'pie',
+          radius: ['35%', '70%'],
+          avoidLabelOverlap: true,
+          itemStyle: {
+            borderRadius: 8,
+            borderColor: '#111827',
+            borderWidth: 2,
+          },
+          color: FINANCIAL_PALETTE,
+          label: {
+            show: true,
+            formatter: '{b}: {d}%',
+            color: '#94a3b8',
+          },
+          data: pieData,
+        });
+      }
     }
 
     const isCartesian = chartType !== 'pie';
@@ -581,6 +634,7 @@ export default function EChartsRenderer({
           scale: true,
           name: yAxisLabel || yField,
           position: 'left',
+          nameTextStyle: { color: '#10b981', fontSize: 11, padding: [0, 0, 4, 0] },
           axisLine: { show: true, lineStyle: { color: '#10b981' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: {
@@ -593,6 +647,7 @@ export default function EChartsRenderer({
           scale: true,
           name: y2AxisLabel || y2Field || 'Secondary Metric',
           position: 'right',
+          nameTextStyle: { color: '#06b6d4', fontSize: 11, padding: [0, 0, 4, 0] },
           axisLine: { show: true, lineStyle: { color: '#06b6d4' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: { show: false },
@@ -695,16 +750,17 @@ export default function EChartsRenderer({
       tooltip,
       legend: {
         show: interactions.enableLegend !== false,
-        top: chartTitle ? 30 : 5,
-        right: 10,
-        textStyle: { color: '#94a3b8', fontSize: 11 },
+        top: 6,
+        right: 16,
+        textStyle: { color: '#94a3b8', fontSize: 12, fontFamily: 'Space Grotesk' },
+        itemGap: 16,
       },
       grid: isCartesian
         ? {
             left: '4%',
             right: isDualAxis ? '6%' : '4%',
-            top: chartTitle ? 65 : 40,
-            bottom: interactions.enableZoom ? 45 : 30,
+            top: chartTitle ? 72 : 45,
+            bottom: interactions.enableZoom ? 48 : 32,
             containLabel: true,
           }
         : undefined,
@@ -735,6 +791,10 @@ export default function EChartsRenderer({
     xField,
     yField,
     y2Field,
+    yFields,
+    periodFilter,
+    breakdownMode,
+    compositionPeriod,
     openField,
     closeField,
     lowField,

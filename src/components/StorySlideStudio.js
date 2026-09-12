@@ -53,18 +53,31 @@ export default function StorySlideStudio({
 
     if (orient === 'transposed') {
       const numCols = cols.filter((c) => c !== 'Period');
+      const primaryMetric = numCols[0] || cols[1] || 'Metric 1';
+      const secondaryMetric = numCols[1] || cols[2] || '';
+      const chartTitle = secondaryMetric
+        ? `${primaryMetric} & ${secondaryMetric} Trend (${sheetName})`
+        : `${primaryMetric} Trend (${sheetName})`;
+      const chartSubtitle = secondaryMetric
+        ? `Comparing ${primaryMetric} (Left Axis) and ${secondaryMetric} (Right Axis) across fiscal periods`
+        : `Financial statement metric view across timeline periods`;
+
       return {
         sheetName,
         orientation: 'transposed',
         chartType: 'combo',
         xField: 'Period',
-        yField: numCols[0] || cols[1] || 'Metric 1',
-        y2Field: numCols[1] || cols[2] || '',
-        chartTitle: `${sheetName} Trend Over Periods`,
-        chartSubtitle: `Financial statement metric view across timeline periods`,
+        yField: primaryMetric,
+        y2Field: secondaryMetric,
+        yFields: [primaryMetric, secondaryMetric].filter(Boolean),
+        periodFilter: { preset: 'all', customStart: '', customEnd: '' },
+        breakdownMode: 'distribution',
+        compositionPeriod: '',
+        chartTitle,
+        chartSubtitle,
         xAxisLabel: 'Fiscal Period',
-        yAxisLabel: numCols[0] || cols[1] || 'Primary Metric',
-        y2AxisLabel: numCols[1] || cols[2] || 'Secondary Metric',
+        yAxisLabel: primaryMetric,
+        y2AxisLabel: secondaryMetric,
       };
     } else {
       const dateCol = cols.find((c) => types[c] === 'date') || cols[0] || 'Date';
@@ -76,6 +89,10 @@ export default function StorySlideStudio({
         xField: dateCol,
         yField: numCols[0] || cols[1] || 'Close',
         y2Field: numCols[1] || cols[2] || 'Volume',
+        yFields: [numCols[0] || cols[1] || 'Close', numCols[1] || cols[2] || 'Volume'].filter(Boolean),
+        periodFilter: { preset: 'all', customStart: '', customEnd: '' },
+        breakdownMode: 'distribution',
+        compositionPeriod: '',
         openField: cols.find((c) => /open/i.test(c)) || numCols[0] || cols[0] || 'Open',
         closeField: cols.find((c) => /close/i.test(c)) || numCols[1] || cols[1] || 'Close',
         lowField: cols.find((c) => /low/i.test(c)) || numCols[2] || cols[2] || 'Low',
@@ -110,6 +127,7 @@ export default function StorySlideStudio({
           enableMouseHover: true,
           enableLegend: true,
           showGridLines: true,
+          enableAreaShading: false,
         },
       },
       {
@@ -126,6 +144,7 @@ export default function StorySlideStudio({
           enableMouseHover: true,
           enableLegend: true,
           showGridLines: true,
+          enableAreaShading: false,
         },
       },
     ];
@@ -177,6 +196,7 @@ export default function StorySlideStudio({
       xField: newX,
       yField: newY,
       y2Field: newY2,
+      yFields: [newY, newY2].filter(Boolean),
     });
   };
 
@@ -297,6 +317,10 @@ export default function StorySlideStudio({
                   data: oriented.data || [],
                   columns: oriented.columns || [],
                   columnTypes: oriented.columnTypes || {},
+                  yFields: s.yFields || [s.yField, s.y2Field].filter(Boolean),
+                  periodFilter: s.periodFilter || { preset: 'all' },
+                  breakdownMode: s.breakdownMode || 'distribution',
+                  compositionPeriod: s.compositionPeriod || '',
                 };
               });
               onDownloadStory({ storyTitle, slides: exportSlides, sheets });
@@ -382,6 +406,15 @@ export default function StorySlideStudio({
             setYField={(val) => updateCurrentSlide({ yField: val })}
             y2Field={currentSlide.y2Field}
             setY2Field={(val) => updateCurrentSlide({ y2Field: val })}
+            yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
+            setYFields={(val) => updateCurrentSlide({ yFields: val })}
+            periodFilter={currentSlide.periodFilter || { preset: 'all' }}
+            setPeriodFilter={(val) => updateCurrentSlide({ periodFilter: val })}
+            breakdownMode={currentSlide.breakdownMode || 'distribution'}
+            setBreakdownMode={(val) => updateCurrentSlide({ breakdownMode: val })}
+            compositionPeriod={currentSlide.compositionPeriod || ''}
+            setCompositionPeriod={(val) => updateCurrentSlide({ compositionPeriod: val })}
+            availablePeriods={(activeOrientedData.data || []).map((d) => String(d[currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])] ?? '')).filter(Boolean)}
             openField={currentSlide.openField}
             setOpenField={(val) => updateCurrentSlide({ openField: val })}
             closeField={currentSlide.closeField}
@@ -459,6 +492,10 @@ export default function StorySlideStudio({
                 xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
                 yField={currentSlide.yField || activeOrientedData.columns[1]}
                 y2Field={currentSlide.y2Field}
+                yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
+                periodFilter={currentSlide.periodFilter || { preset: 'all' }}
+                breakdownMode={currentSlide.breakdownMode || 'distribution'}
+                compositionPeriod={currentSlide.compositionPeriod || ''}
                 openField={currentSlide.openField}
                 closeField={currentSlide.closeField}
                 lowField={currentSlide.lowField}

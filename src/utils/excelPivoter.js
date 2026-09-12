@@ -6,14 +6,24 @@ import * as XLSX from 'xlsx';
  */
 export function cleanHeaderLabel(val) {
   if (val === null || val === undefined) return '';
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  if (val instanceof Date) {
+    if (!isNaN(val.getTime())) {
+      const m = months[val.getUTCMonth()];
+      const y = String(val.getUTCFullYear()).slice(-2);
+      return `${m}-${y}`;
+    }
+  }
+
   let str = String(val).trim();
   if (!str) return '';
 
-  // Match ISO date string (e.g. 2017-03-30T18:29:50.000Z or 2017-03-31 00:00:00)
-  if (/^\d{4}-\d{2}-\d{2}(T|\s)/i.test(str)) {
+  // Match ISO date string or Date.toString() (e.g. "Thu Mar 30 2017 23:59:50 GMT+0530")
+  if (/^\d{4}-\d{2}-\d{2}(T|\s)/i.test(str) || str.includes('GMT') || /^[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}/.test(str)) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const m = months[d.getUTCMonth()];
       const y = String(d.getUTCFullYear()).slice(-2);
       return `${m}-${y}`;
@@ -25,7 +35,6 @@ export function cleanHeaderLabel(val) {
     const parts = str.split('-');
     const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     if (!isNaN(d.getTime())) {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
     }
   }
