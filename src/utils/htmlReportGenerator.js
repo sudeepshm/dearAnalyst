@@ -361,36 +361,41 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
           }
         });
       } else if (chartType === 'combo') {
-        const barMetric = effectiveYFields[0] || yField;
-        series.push({
-          name: slide.yAxisLabel || barMetric,
-          type: 'bar',
-          yAxisIndex: 0,
-          data: data.map(d => Number(d[barMetric]) || 0),
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#10b981' },
-              { offset: 1, color: 'rgba(16, 185, 129, 0.2)' }
-            ]),
-            borderRadius: [4, 4, 0, 0]
-          }
-        });
+        const seriesConfigs = slide.seriesConfigs || {};
+        effectiveYFields.forEach((metric, idx) => {
+          const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+          const config = seriesConfigs[metric] || (idx === 0 ? { type: 'bar', yAxisIndex: 0 } : { type: 'line', yAxisIndex: 1 });
+          const sType = config.type || (idx === 0 ? 'bar' : 'line');
+          const yAxisIdx = config.yAxisIndex !== undefined ? config.yAxisIndex : (sType === 'bar' ? 0 : 1);
 
-        const lineMetrics = effectiveYFields.slice(1);
-        if (lineMetrics.length > 0) {
-          lineMetrics.forEach((metric, idx) => {
-            const color = FINANCIAL_PALETTE[(idx + 1) % FINANCIAL_PALETTE.length];
+          if (sType === 'bar') {
+            series.push({
+              name: metric,
+              type: 'bar',
+              yAxisIndex: yAxisIdx,
+              data: data.map(d => Number(d[metric]) || 0),
+              itemStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color },
+                  { offset: 1, color: color + '33' }
+                ]),
+                borderRadius: [4, 4, 0, 0]
+              }
+            });
+          } else {
             series.push({
               name: metric,
               type: 'line',
-              yAxisIndex: 1,
+              yAxisIndex: yAxisIdx,
               smooth: true,
               data: data.map(d => Number(d[metric]) || 0),
               itemStyle: { color },
               lineStyle: { width: 3, color }
             });
-          });
-        } else if (y2Field) {
+          }
+        });
+
+        if (effectiveYFields.length === 1 && y2Field) {
           series.push({
             name: slide.y2AxisLabel || y2Field,
             type: 'line',

@@ -28,6 +28,7 @@ export default function EChartsRenderer({
   yField = 'Close',
   y2Field = '',
   yFields = [],
+  seriesConfigs = {},
   periodFilter = { preset: 'all' },
   breakdownMode = 'distribution',
   compositionPeriod = '',
@@ -233,38 +234,42 @@ export default function EChartsRenderer({
         });
       }
     } else if (chartType === 'combo') {
-      // Dual-Axis Combo: Primary metric is Bar (Left Axis), remaining metrics are Lines (Right Axis)
-      const barMetric = effectiveYFields[0] || yField;
-      series.push({
-        name: yAxisLabel || barMetric,
-        type: 'bar',
-        yAxisIndex: 0,
-        data: getMetricSeriesData(barMetric),
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: FINANCIAL_PALETTE[0] },
-            { offset: 1, color: 'rgba(16, 185, 129, 0.2)' },
-          ]),
-          borderRadius: [4, 4, 0, 0],
-        },
-      });
+      // Dynamic Multi-Bar & Line Combo: Each series can be independently configured as Bar (Left Axis) or Line (Right Axis)
+      effectiveYFields.forEach((metric, idx) => {
+        const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+        const config = seriesConfigs[metric] || (idx === 0 ? { type: 'bar', yAxisIndex: 0 } : { type: 'line', yAxisIndex: 1 });
+        const sType = config.type || (idx === 0 ? 'bar' : 'line');
+        const yAxisIdx = config.yAxisIndex !== undefined ? config.yAxisIndex : (sType === 'bar' ? 0 : 1);
 
-      const lineMetrics = effectiveYFields.slice(1);
-      if (lineMetrics.length > 0) {
-        lineMetrics.forEach((metric, idx) => {
-          const color = FINANCIAL_PALETTE[(idx + 1) % FINANCIAL_PALETTE.length];
+        if (sType === 'bar') {
+          series.push({
+            name: metric,
+            type: 'bar',
+            yAxisIndex: yAxisIdx,
+            data: getMetricSeriesData(metric),
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color },
+                { offset: 1, color: color + '33' },
+              ]),
+              borderRadius: [4, 4, 0, 0],
+            },
+          });
+        } else {
           series.push({
             name: metric,
             type: 'line',
-            yAxisIndex: 1,
+            yAxisIndex: yAxisIdx,
             smooth: true,
             data: getMetricSeriesData(metric),
             itemStyle: { color },
             lineStyle: { width: 3, color },
             symbolSize: 6,
           });
-        });
-      } else if (y2Field) {
+        }
+      });
+
+      if (effectiveYFields.length === 1 && y2Field) {
         series.push({
           name: y2AxisLabel || y2Field,
           type: 'line',
@@ -611,7 +616,7 @@ export default function EChartsRenderer({
     }
 
     const isCartesian = chartType !== 'pie';
-    const isDualAxis = ['combo', 'dual-line'].includes(chartType);
+    const isDualAxis = ['combo', 'dual-line'].includes(chartType) || series.some((s) => s.yAxisIndex === 1);
     const isHorizontalBar = chartType === 'horizontal-clustered-bar';
     const isScatter = chartType === 'scatter';
 
@@ -628,11 +633,15 @@ export default function EChartsRenderer({
         splitLine: { show: false },
       };
     } else if (isDualAxis) {
+      const rightSeries = series.filter((s) => s.yAxisIndex === 1);
+      const rightNames = rightSeries.map((s) => s.name).join(' / ');
+      const isPercentageAxis = rightSeries.some((s) => /%|margin|ratio|rate/i.test(s.name));
+
       yAxisConfig = [
         {
           type: 'value',
           scale: true,
-          name: yAxisLabel || yField,
+          name: yAxisLabel || (series.find((s) => s.yAxisIndex === 0)?.name) || yField || 'Primary',
           position: 'left',
           nameTextStyle: { color: '#10b981', fontSize: 11, padding: [0, 0, 4, 0] },
           axisLine: { show: true, lineStyle: { color: '#10b981' } },
@@ -645,11 +654,15 @@ export default function EChartsRenderer({
         {
           type: 'value',
           scale: true,
-          name: y2AxisLabel || y2Field || 'Secondary Metric',
+          name: y2AxisLabel || rightNames || y2Field || 'Secondary Metric',
           position: 'right',
           nameTextStyle: { color: '#06b6d4', fontSize: 11, padding: [0, 0, 4, 0] },
           axisLine: { show: true, lineStyle: { color: '#06b6d4' } },
-          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          axisLabel: {
+            color: '#94a3b8',
+            fontSize: 11,
+            formatter: isPercentageAxis ? '{value}%' : '{value}',
+          },
           splitLine: { show: false },
         },
       ];

@@ -70,6 +70,7 @@ export default function StorySlideStudio({
         yField: primaryMetric,
         y2Field: secondaryMetric,
         yFields: [primaryMetric, secondaryMetric].filter(Boolean),
+        seriesConfigs: {},
         periodFilter: { preset: 'all', customStart: '', customEnd: '' },
         breakdownMode: 'distribution',
         compositionPeriod: '',
@@ -90,6 +91,7 @@ export default function StorySlideStudio({
         yField: numCols[0] || cols[1] || 'Close',
         y2Field: numCols[1] || cols[2] || 'Volume',
         yFields: [numCols[0] || cols[1] || 'Close', numCols[1] || cols[2] || 'Volume'].filter(Boolean),
+        seriesConfigs: {},
         periodFilter: { preset: 'all', customStart: '', customEnd: '' },
         breakdownMode: 'distribution',
         compositionPeriod: '',
@@ -318,6 +320,7 @@ export default function StorySlideStudio({
                   columns: oriented.columns || [],
                   columnTypes: oriented.columnTypes || {},
                   yFields: s.yFields || [s.yField, s.y2Field].filter(Boolean),
+                  seriesConfigs: s.seriesConfigs || {},
                   periodFilter: s.periodFilter || { preset: 'all' },
                   breakdownMode: s.breakdownMode || 'distribution',
                   compositionPeriod: s.compositionPeriod || '',
@@ -395,6 +398,7 @@ export default function StorySlideStudio({
             onSheetChange={handleSlideSheetChange}
             columns={activeOrientedData.columns}
             columnTypes={activeOrientedData.columnTypes}
+            data={activeOrientedData.data}
             orientation={slideOrientation}
             onOrientationChange={handleOrientationChange}
             isFinancial={rawSheet.isFinancial || false}
@@ -408,6 +412,15 @@ export default function StorySlideStudio({
             setY2Field={(val) => updateCurrentSlide({ y2Field: val })}
             yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
             setYFields={(val) => updateCurrentSlide({ yFields: val })}
+            seriesConfigs={currentSlide.seriesConfigs || {}}
+            onUpdateSeriesConfig={(metric, cfg) => {
+              updateCurrentSlide({
+                seriesConfigs: {
+                  ...(currentSlide.seriesConfigs || {}),
+                  [metric]: { ...((currentSlide.seriesConfigs || {})[metric] || {}), ...cfg },
+                },
+              });
+            }}
             periodFilter={currentSlide.periodFilter || { preset: 'all' }}
             setPeriodFilter={(val) => updateCurrentSlide({ periodFilter: val })}
             breakdownMode={currentSlide.breakdownMode || 'distribution'}
@@ -493,6 +506,7 @@ export default function StorySlideStudio({
                 yField={currentSlide.yField || activeOrientedData.columns[1]}
                 y2Field={currentSlide.y2Field}
                 yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
+                seriesConfigs={currentSlide.seriesConfigs || {}}
                 periodFilter={currentSlide.periodFilter || { preset: 'all' }}
                 breakdownMode={currentSlide.breakdownMode || 'distribution'}
                 compositionPeriod={currentSlide.compositionPeriod || ''}

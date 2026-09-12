@@ -26,6 +26,7 @@ import {
   Filter
 } from 'lucide-react';
 import VisualChartCatalogue from '@/components/VisualChartCatalogue';
+import FinancialTablePicker from '@/components/FinancialTablePicker';
 
 const FINANCIAL_PALETTE = [
   '#10b981', // Emerald
@@ -46,6 +47,7 @@ export default function AddInteractPanel({
   onSheetChange,
   columns = [],
   columnTypes = {},
+  data = [],
   orientation = 'standard',
   onOrientationChange,
   isFinancial = false,
@@ -59,6 +61,8 @@ export default function AddInteractPanel({
   setY2Field,
   yFields = [],
   setYFields,
+  seriesConfigs = {},
+  onUpdateSeriesConfig,
   periodFilter = { preset: 'all' },
   setPeriodFilter,
   breakdownMode = 'distribution',
@@ -337,57 +341,211 @@ export default function AddInteractPanel({
                   </div>
                 </div>
               </div>
-            ) : (
-              /* Standard & Advanced Graph Field Mapping with Sheet-Level Orientation */
-              <div className="space-y-4">
-                {/* Data Orientation Toggle (Standard Tabular vs Transposed Financial) */}
-                <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono text-slate-300 font-semibold flex items-center gap-1.5">
-                      <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Data Orientation:</span>
+            ) : chartType === 'scatter' ? (
+              /* Scatter Chart: X-Axis Numerical vs Y-Axis Numerical */
+              <div className="space-y-3.5">
+                <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div>
+                    <span className="text-xs font-mono text-slate-300 font-semibold block mb-1">
+                      X-Axis (Independent Variable):
                     </span>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
-                      orientation === 'transposed'
-                        ? 'bg-emerald-950/70 border-emerald-700/60 text-emerald-300 font-bold'
-                        : 'bg-slate-800 border-slate-700 text-slate-300'
-                    }`}>
-                      {orientation === 'transposed' ? 'Financial (Rows = Metrics)' : 'Standard (Cols = Metrics)'}
+                    <select
+                      value={xField}
+                      onChange={(e) => setXField(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
+                    >
+                      {columns.map((c) => (
+                        <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-mono text-slate-300 font-semibold block mb-1">
+                      Y-Axis (Dependent Variable):
+                    </span>
+                    <select
+                      value={effectiveYFields[0] || yField}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (setYFields) setYFields([val]);
+                        if (setYField) setYField(val);
+                      }}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
+                    >
+                      {columns.filter((c) => c !== xField).map((c) => (
+                        <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ) : chartType === 'pie' ? (
+              /* Pie / Donut Chart with Dedicated Quarter Picker & Component Selection */
+              <div className="space-y-4">
+                {/* Pie Mode Toggle */}
+                <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
+                      <PieChart className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Pie Slice Mapping Mode:</span>
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">
+                      {breakdownMode === 'composition' ? 'Quarter Breakdown' : 'Timeline Share'}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
                     <button
                       type="button"
-                      onClick={() => onOrientationChange && onOrientationChange('standard')}
+                      onClick={() => setBreakdownMode && setBreakdownMode('composition')}
                       className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
-                        orientation === 'standard'
-                          ? 'bg-slate-800 text-white border border-slate-700 font-semibold shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      Standard (Cols=Metrics)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onOrientationChange && onOrientationChange('transposed')}
-                      className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
-                        orientation === 'transposed'
+                        breakdownMode === 'composition'
                           ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
                           : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      Transposed (Rows=Metrics)
+                      1 Quarter (Components)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBreakdownMode && setBreakdownMode('distribution')}
+                      className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
+                        breakdownMode === 'distribution'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      Across Quarters (Share)
                     </button>
                   </div>
-                  {orientation === 'transposed' && (
-                    <p className="text-[10px] text-emerald-400/90 font-mono mt-1">
-                      ✨ Financial Mode: Rows are accounting metrics, auto-plotted across timeline periods ({columns.length > 1 ? columns.length - 1 : 0} items).
-                    </p>
-                  )}
                 </div>
 
-                {/* Timeline / Period Range Slicer */}
+                {breakdownMode === 'composition' ? (
+                  <div className="space-y-3">
+                    {/* Quarter Selector Pill Strip */}
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Target Quarter for Breakdown:</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-cyan-300 font-bold">
+                          {compositionPeriod || (availablePeriods.length > 0 ? availablePeriods[availablePeriods.length - 1] : '')}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+                        {availablePeriods.map((p) => {
+                          const target = compositionPeriod || availablePeriods[availablePeriods.length - 1];
+                          const isSelected = target === p;
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => setCompositionPeriod && setCompositionPeriod(p)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-mono border whitespace-nowrap transition ${
+                                isSelected
+                                  ? 'bg-cyan-950/80 border-cyan-500 text-cyan-300 font-bold shadow-sm'
+                                  : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Component Row Picker */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono text-slate-300 font-semibold flex items-center justify-between">
+                        <span>Check Component Rows for Pie Slices:</span>
+                        <span className="text-[10px] text-slate-500">e.g. Depreciation, Interest, Tax</span>
+                      </label>
+                      <FinancialTablePicker
+                        metrics={columns}
+                        metricTypes={columnTypes}
+                        selectedMetrics={effectiveYFields}
+                        onSelectMetrics={(newFields) => {
+                          if (setYFields) setYFields(newFields);
+                          if (setYField) setYField(newFields[0] || '');
+                          if (setY2Field) setY2Field(newFields[1] || '');
+                        }}
+                        seriesConfigs={seriesConfigs}
+                        onUpdateSeriesConfig={onUpdateSeriesConfig}
+                        recentData={data}
+                        recentPeriods={availablePeriods}
+                        chartType="pie"
+                        isFinancial={isFinancial || orientation === 'transposed'}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Timeline Distribution Mode: 1 Metric across Quarters */
+                  <div className="space-y-3">
+                    {/* Period Range Slicer */}
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>Timeline Period Filter:</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-cyan-400 font-bold">
+                          {(periodFilter?.preset || 'all').toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-5 gap-1 text-[11px] font-mono">
+                        {periodPresets.map((preset) => {
+                          const isActive = (periodFilter?.preset || 'all') === preset.id;
+                          return (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => handlePeriodPreset(preset.id)}
+                              className={`py-1.5 px-1 rounded-lg border transition text-center ${
+                                isActive
+                                  ? 'bg-cyan-950/70 border-cyan-500/60 text-cyan-300 font-bold shadow-sm'
+                                  : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Single Metric Selection */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono text-slate-300 font-semibold">
+                        Select 1 Metric to Distribute across Quarters:
+                      </label>
+                      <FinancialTablePicker
+                        metrics={columns}
+                        metricTypes={columnTypes}
+                        selectedMetrics={effectiveYFields.slice(0, 1)}
+                        onSelectMetrics={(newFields) => {
+                          const single = newFields.slice(-1);
+                          if (setYFields) setYFields(single);
+                          if (setYField) setYField(single[0] || '');
+                        }}
+                        seriesConfigs={seriesConfigs}
+                        onUpdateSeriesConfig={onUpdateSeriesConfig}
+                        recentData={data}
+                        recentPeriods={availablePeriods}
+                        chartType="pie"
+                        isFinancial={isFinancial || orientation === 'transposed'}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Time-Series & Comparison Charts (Combo, Multi-Line, Clustered Bar, Stacked Bar, Area, etc.) */
+              <div className="space-y-4">
+                {/* 1. Timeline Period Filter */}
                 <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
@@ -449,97 +607,24 @@ export default function AddInteractPanel({
                   )}
                 </div>
 
-                {/* X-Axis Selector */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-mono text-slate-400">
-                      {chartType === 'horizontal-clustered-bar' ? 'Y-Axis (Categories / Entities):' :
-                       chartType === 'scatter' ? 'X-Axis (Independent Numerical Variable):' :
-                       orientation === 'transposed' ? 'X-Axis (Temporal Timeline / Periods):' :
-                       'X-Axis (Category / Date / Dimension):'}
-                    </span>
+                {/* 2. Timeline X-Axis Confirmation Banner */}
+                <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 flex items-center justify-between text-xs font-mono">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-slate-400">Timeline (X-Axis):</span>
+                    <span className="text-slate-100 font-semibold">{xField || 'Period'}</span>
                   </div>
-                  <select
-                    value={xField}
-                    onChange={(e) => setXField(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
-                  >
-                    {columns.map((c) => (
-                      <option key={c} value={c}>
-                        {c} ({columnTypes[c] || 'type'})
-                      </option>
-                    ))}
-                  </select>
+                  <span className="text-[10px] text-emerald-400/90 font-medium">
+                    {availablePeriods.length} Quarters Available
+                  </span>
                 </div>
 
-                {/* Pie Chart Component Breakdown Mode Option */}
-                {chartType === 'pie' && (
-                  <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
-                        <PieChart className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Pie Slice Mapping Mode:</span>
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">
-                        {breakdownMode === 'composition' ? 'Period Composition' : 'Timeline Distribution'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
-                      <button
-                        type="button"
-                        onClick={() => setBreakdownMode && setBreakdownMode('distribution')}
-                        className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
-                          breakdownMode === 'distribution'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        Timeline (1 Metric across time)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setBreakdownMode && setBreakdownMode('composition')}
-                        className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
-                          breakdownMode === 'composition'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        Composition (N Metrics in 1 period)
-                      </button>
-                    </div>
-
-                    {breakdownMode === 'composition' && (
-                      <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
-                        <span className="text-[11px] font-mono text-slate-400">Target Period for Breakdown:</span>
-                        <select
-                          value={compositionPeriod || (availablePeriods.length > 0 ? availablePeriods[availablePeriods.length - 1] : '')}
-                          onChange={(e) => setCompositionPeriod && setCompositionPeriod(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-emerald-300 focus:outline-none focus:border-emerald-400 font-mono"
-                        >
-                          {availablePeriods.map((p) => (
-                            <option key={p} value={p}>{p}</option>
-                          ))}
-                        </select>
-                        <p className="text-[10px] text-emerald-400/80 font-mono">
-                          Select metrics below (e.g. Depreciation, Interest, Tax) to form slices for this period.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Upgraded Multi-Metric Tag Pills & Searchable Selector */}
-                <div className="space-y-2.5">
+                {/* 3. Active Chart Series Pills */}
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>
-                        {chartType === 'pie' && breakdownMode !== 'composition'
-                          ? 'Primary Metric (Timeline Distribution):'
-                          : `Selected Series / Metrics (${effectiveYFields.length}):`}
-                      </span>
+                      <span>Active Chart Series ({effectiveYFields.length}):</span>
                     </span>
                     {effectiveYFields.length > 0 && (
                       <button
@@ -556,15 +641,15 @@ export default function AddInteractPanel({
                     )}
                   </div>
 
-                  {/* Active Metric Tag Pills */}
                   <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2 rounded-xl bg-slate-950/80 border border-slate-800">
                     {effectiveYFields.length === 0 ? (
                       <span className="text-xs font-mono text-slate-500 italic flex items-center py-0.5">
-                        No metrics selected. Search or click below to add series...
+                        Click checkboxes in the financial table below to add series...
                       </span>
                     ) : (
                       effectiveYFields.map((metric, idx) => {
                         const color = FINANCIAL_PALETTE[idx % FINANCIAL_PALETTE.length];
+                        const cfg = seriesConfigs[metric] || (chartType === 'combo' && idx > 0 ? { type: 'line', yAxisIndex: 1 } : { type: 'bar', yAxisIndex: 0 });
                         return (
                           <span
                             key={metric}
@@ -574,7 +659,16 @@ export default function AddInteractPanel({
                               className="w-2 h-2 rounded-full flex-shrink-0"
                               style={{ backgroundColor: color }}
                             />
-                            <span className="truncate max-w-[150px] font-medium">{metric}</span>
+                            <span className="truncate max-w-[140px] font-medium">{metric}</span>
+                            {chartType === 'combo' && (
+                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                cfg.type === 'bar'
+                                  ? 'bg-cyan-950 text-cyan-300 border border-cyan-800'
+                                  : 'bg-purple-950 text-purple-300 border border-purple-800'
+                              }`}>
+                                {cfg.type === 'bar' ? 'Bar (L)' : 'Line (R)'}
+                              </span>
+                            )}
                             <button
                               type="button"
                               onClick={() => handleRemoveMetric(metric)}
@@ -587,108 +681,30 @@ export default function AddInteractPanel({
                       })
                     )}
                   </div>
+                </div>
 
-                  {/* Search Autocomplete Input with Dropdown */}
-                  <div className="relative">
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setIsSearchOpen(true);
-                        }}
-                        onFocus={() => setIsSearchOpen(true)}
-                        placeholder="Type to search 50+ line items (e.g. Sales, Tax, Cash)..."
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-8 py-2 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-400 transition"
-                      />
-                      {searchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setSearchQuery('')}
-                          className="absolute right-2.5 top-2.5 text-slate-400 hover:text-white"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Dropdown Options */}
-                    {isSearchOpen && (
-                      <div className="absolute z-30 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-slate-950 border border-slate-700/90 rounded-xl shadow-2xl p-1.5 space-y-0.5 scrollbar-thin">
-                        <div className="flex items-center justify-between px-2 py-1 border-b border-slate-800 text-[10px] font-mono text-slate-500">
-                          <span>{filteredMetrics.length} matching metrics</span>
-                          <button
-                            type="button"
-                            onClick={() => setIsSearchOpen(false)}
-                            className="hover:text-slate-300"
-                          >
-                            Close ✕
-                          </button>
-                        </div>
-
-                        {filteredMetrics.length === 0 ? (
-                          <div className="p-3 text-center text-xs font-mono text-slate-500">
-                            No matching metrics found for "{searchQuery}"
-                          </div>
-                        ) : (
-                          filteredMetrics.map((col) => {
-                            const isSelected = effectiveYFields.includes(col);
-                            const type = columnTypes[col] || 'metric';
-                            return (
-                              <button
-                                key={col}
-                                type="button"
-                                onClick={() => handleToggleMetric(col)}
-                                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-mono flex items-center justify-between transition ${
-                                  isSelected
-                                    ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 font-semibold'
-                                    : 'hover:bg-slate-900 text-slate-300'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 truncate pr-2">
-                                  <span
-                                    className={`w-1.5 h-1.5 rounded-full ${
-                                      isSelected ? 'bg-emerald-400' : 'bg-slate-600'
-                                    }`}
-                                  />
-                                  <span className="truncate">{col}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  <span className="text-[10px] text-slate-500 uppercase px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
-                                    {type}
-                                  </span>
-                                  {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                                </div>
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Quick Helper Presets */}
-                  <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 px-1 pt-1">
-                    <span>Quick select:</span>
-                    <div className="flex items-center gap-2">
-                      {availableMetrics.length >= 3 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const top3 = availableMetrics.slice(0, 3);
-                            if (setYFields) setYFields(top3);
-                            if (setYField) setYField(top3[0]);
-                            if (setY2Field) setY2Field(top3[1] || '');
-                          }}
-                          className="text-xs text-emerald-400/90 hover:text-emerald-300 underline underline-offset-2"
-                        >
-                          Top 3 Metrics
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                {/* 4. Interactive Spreadsheet Statement Table */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono text-slate-300 font-semibold flex items-center justify-between">
+                    <span>Click Rows to Plot from Spreadsheet:</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Live preview & 1-click presets</span>
+                  </label>
+                  <FinancialTablePicker
+                    metrics={columns}
+                    metricTypes={columnTypes}
+                    selectedMetrics={effectiveYFields}
+                    onSelectMetrics={(newFields) => {
+                      if (setYFields) setYFields(newFields);
+                      if (setYField) setYField(newFields[0] || '');
+                      if (setY2Field) setY2Field(newFields[1] || '');
+                    }}
+                    seriesConfigs={seriesConfigs}
+                    onUpdateSeriesConfig={onUpdateSeriesConfig}
+                    recentData={data}
+                    recentPeriods={availablePeriods}
+                    chartType={chartType}
+                    isFinancial={isFinancial || orientation === 'transposed'}
+                  />
                 </div>
 
                 {chartType === 'waterfall' && (

@@ -173,12 +173,20 @@ export function pivotFinancialDataset(rawData, columns, columnTypes) {
     stringCols[0] ||
     columns[0];
 
-  const periodCols = columns.filter((c) => c !== descriptorCol && !c.startsWith('__EMPTY'));
+  const allPeriodCols = columns.filter((c) => c !== descriptorCol && !c.startsWith('__EMPTY'));
+
+  // Screener.in & financial models place scenario projections and trailing summaries at the far right
+  const SCENARIO_REGEX = /^(trailing|ttm|best\s*case|worst\s*case|normal\s*case|base\s*case|bear\s*case|bull\s*case|forecast|projection|cagr|variance)/i;
+  const chronologicalPeriodCols = allPeriodCols.filter((c) => !SCENARIO_REGEX.test(c.trim()));
+  const scenarioPeriodCols = allPeriodCols.filter((c) => SCENARIO_REGEX.test(c.trim()));
+
+  // Prioritize genuine chronological periods for timeline visualization
+  const periodCols = chronologicalPeriodCols.length > 0 ? chronologicalPeriodCols : allPeriodCols;
 
   // Test if period columns indicate a financial time series
   const isFinancial =
-    periodCols.length >= 2 &&
-    periodCols.some(
+    allPeriodCols.length >= 2 &&
+    allPeriodCols.some(
       (c) =>
         /^[A-Za-z]{3}[-\s']*\d{2,4}$/i.test(c) ||
         /^(Q[1-4]|FY\d{2,4}|\d{4})/i.test(c) ||
@@ -210,7 +218,7 @@ export function pivotFinancialDataset(rawData, columns, columnTypes) {
     return { isFinancial, data: rawData, columns, columnTypes };
   }
 
-  // Build pivoted rows: each period becomes a row
+  // Build pivoted rows: each chronological period becomes a row
   const pivotedData = periodCols.map((periodKey) => {
     const cleanPeriod = cleanHeaderLabel(periodKey);
     const rowObj = { Period: cleanPeriod };
@@ -240,6 +248,10 @@ export function pivotFinancialDataset(rawData, columns, columnTypes) {
     columns: pivotedColumns,
     columnTypes: pivotedColumnTypes,
     periodColumns: periodCols,
+    allPeriodColumns: allPeriodCols,
+    scenarioColumns: scenarioPeriodCols,
     descriptorColumn: descriptorCol,
+    validRows,
+    deduplicatedRowLabels,
   };
 }
