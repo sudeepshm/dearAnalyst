@@ -1,19 +1,16 @@
 import * as XLSX from 'xlsx';
+import { formatPeriodToQuarter } from './periodHelpers';
 
 /**
- * Clean cell / header string and format ISO dates or timestamps into clean fiscal labels.
- * e.g. "2017-03-30T18:29:50.000Z" -> "Mar-17"
+ * Clean cell / header string and format ISO dates, timestamps, or month labels into clean Quarter labels.
+ * e.g. "2017-03-30T18:29:50.000Z" -> "Q4 FY17", "Mar-17" -> "Q4 FY17", "Jun-23" -> "Q1 FY24"
  */
 export function cleanHeaderLabel(val) {
   if (val === null || val === undefined) return '';
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
   if (val instanceof Date) {
     if (!isNaN(val.getTime())) {
-      const m = months[val.getUTCMonth()];
-      const y = String(val.getUTCFullYear()).slice(-2);
-      return `${m}-${y}`;
+      return formatPeriodToQuarter(val, 'quarter_fy');
     }
   }
 
@@ -24,9 +21,7 @@ export function cleanHeaderLabel(val) {
   if (/^\d{4}-\d{2}-\d{2}(T|\s)/i.test(str) || str.includes('GMT') || /^[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}/.test(str)) {
     const d = new Date(str);
     if (!isNaN(d.getTime())) {
-      const m = months[d.getUTCMonth()];
-      const y = String(d.getUTCFullYear()).slice(-2);
-      return `${m}-${y}`;
+      return formatPeriodToQuarter(d, 'quarter_fy');
     }
   }
 
@@ -35,8 +30,14 @@ export function cleanHeaderLabel(val) {
     const parts = str.split('-');
     const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     if (!isNaN(d.getTime())) {
-      return `${months[d.getMonth()]}-${String(d.getFullYear()).slice(-2)}`;
+      return formatPeriodToQuarter(d, 'quarter_fy');
     }
+  }
+
+  // Convert month-year labels (e.g. "Mar-17", "Mar 2017", "Mar'17") into Quarter names (e.g. "Q4 FY17")
+  const quarterConverted = formatPeriodToQuarter(str, 'quarter_fy');
+  if (quarterConverted && quarterConverted !== str) {
+    return quarterConverted;
   }
 
   return str;
@@ -65,7 +66,7 @@ export function detectHeaderRowIndex(rows) {
     const periodCount = rowStrings.filter((cell) =>
       /^[A-Za-z]{3}[-\s']*\d{2,4}$/i.test(cell) ||
       /^\d{4}[-\s']*[A-Za-z]{3}$/i.test(cell) ||
-      /^(Q[1-4]|FY\d{2,4}|\d{4})$/i.test(cell) ||
+      /^(Q[1-4]|FY\d{2,4}|\d{4}|Q[1-4]\s*(?:FY)?\s*\d{2,4})/i.test(cell) ||
       /^\d{4}-\d{2}-\d{2}/.test(cell)
     ).length;
 

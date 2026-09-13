@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { formatPeriodLabel } from '@/utils/periodHelpers';
 import { 
   Check, 
   Search, 
@@ -262,8 +263,8 @@ export default function FinancialTablePicker({
           </div>
           <div className="col-span-4 flex items-center justify-end gap-2 text-right pr-2">
             {samplePeriods.map((p) => (
-              <span key={p} className="truncate max-w-[50px] text-slate-300" title={p}>
-                {p}
+              <span key={p} className="truncate max-w-[55px] text-slate-300" title={formatPeriodLabel(p, false)}>
+                {formatPeriodLabel(p, false)}
               </span>
             ))}
           </div>
