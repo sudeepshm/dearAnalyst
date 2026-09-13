@@ -227,8 +227,8 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-800/80">
         <div className="space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono">
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             <span>Interactive Visual Catalogue</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
@@ -248,7 +248,7 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search 14 chart types..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 shadow-inner"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 shadow-inner"
           />
         </div>
       </div>
@@ -264,13 +264,13 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
               onClick={() => setActiveCategory(cat.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono whitespace-nowrap transition-all duration-200 border ${
                 isActive
-                  ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/15 text-[#00ff87] border-[#00ff87]/60 shadow-[0_0_20px_rgba(0,255,135,0.22)] scale-105 font-bold'
+                  ? 'bg-gradient-to-r from-blue-600/25 to-indigo-600/20 text-blue-300 border-blue-500/60 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-105 font-bold'
                   : 'bg-slate-900/70 text-slate-400 border-slate-800/90 hover:border-slate-700 hover:text-slate-200 hover:bg-slate-900'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#00ff87]' : 'text-slate-500'}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
               <span>{cat.label}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-[#00ff87]/20 text-[#00ff87] border border-[#00ff87]/40' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'bg-slate-800 text-slate-500'}`}>
                 {cat.id === 'all'
                   ? CATALOGUE_CHARTS.length
                   : CATALOGUE_CHARTS.filter((c) => c.category === cat.id).length}
@@ -347,7 +347,7 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
                       onStartStory(chart.id);
                     }
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800/80 group-hover:bg-gradient-to-r group-hover:from-[#00ff87] group-hover:via-[#10b981] group-hover:to-[#00d2ff] text-slate-200 group-hover:text-slate-950 text-xs font-mono font-bold transition-all duration-300 border border-slate-700/60 group-hover:border-emerald-300 shadow-sm group-hover:shadow-[0_0_25px_rgba(0,255,135,0.35)]"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800/80 group-hover:bg-gradient-to-r group-hover:from-[#1364e2] group-hover:via-[#2563eb] group-hover:to-[#9852d9] text-slate-200 group-hover:text-white text-xs font-mono font-bold transition-all duration-300 border border-slate-700/60 group-hover:border-blue-400 shadow-sm group-hover:shadow-[0_0_25px_rgba(19,100,226,0.45)]"
                 >
                   <span>Use in Presentation</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

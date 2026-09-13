@@ -1,3 +1,5 @@
+import { ANALYST_AVATAR_B64 } from './avatarBase64';
+
 /**
  * Generates an interactive, standalone HTML file that displays the dearAnalyst story.
  * Can be opened in any web browser without running a server.
@@ -11,7 +13,7 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} — dearAnalyst Story</title>
+  <title>\${escapeHtml(title)} — dearAnalyst Story</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,8 +28,8 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       theme: {
         extend: {
           colors: {
-            brand: { 500: '#10b981', 600: '#059669' },
-            market: { up: '#10b981', down: '#ef4444', dark: '#080c14', card: '#111827', border: '#334155' }
+            brand: { 500: '#1364e2', 600: '#1d4ed8' },
+            market: { up: '#10b981', down: '#ef4444', dark: '#060913', card: '#0c1224', border: '#1e293b' }
           },
           fontFamily: {
             brand: ['Space Grotesk', 'sans-serif'],
@@ -40,16 +42,19 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
   </script>
   <style>
     body {
-      background: radial-gradient(circle at 50% 0%, #0f1d36 0%, #080c14 75%);
+      background: radial-gradient(circle at 50% 0%, #0e172e 0%, #060913 75%);
       color: #f1f5f9;
       font-family: 'Space Grotesk', sans-serif;
       min-height: 100vh;
     }
     .brand-glow {
-      text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      text-shadow: 0 0 20px rgba(19, 100, 226, 0.4);
+    }
+    .avatar-glow {
+      box-shadow: 0 0 25px rgba(19, 100, 226, 0.5);
     }
     .glass-card {
-      background: rgba(17, 24, 39, 0.85);
+      background: rgba(12, 18, 36, 0.85);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -63,13 +68,14 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
   <!-- Top Navigation Bar -->
   <header class="max-w-7xl w-full mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 glass-card p-4 rounded-2xl">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-black text-xl">
-        dA
+      <div class="relative">
+        <img src="${ANALYST_AVATAR_B64}" alt="Analyst" class="w-11 h-11 rounded-full object-cover ring-2 ring-blue-400 avatar-glow" />
+        <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-500 border-2 border-slate-950 rounded-full animate-pulse"></span>
       </div>
       <div>
-        <h1 class="text-xl font-bold tracking-tight text-emerald-400 font-display flex items-center gap-2">
+        <h1 class="text-xl font-bold tracking-tight text-blue-400 font-display flex items-center gap-2">
           <span>dearAnalyst</span>
-          <span class="text-xs font-mono font-normal px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Story Mode</span>
+          <span class="text-xs font-mono font-normal px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Story Mode</span>
         </h1>
         <p id="story-main-title" class="text-sm text-slate-400">${escapeHtml(title)}</p>
       </div>
@@ -80,13 +86,13 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       <button id="prev-btn" onclick="prevSlide()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1 text-sm">
         &#8592; Previous
       </button>
-      <div class="px-4 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-sm font-mono text-emerald-400">
+      <div class="px-4 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-sm font-mono text-blue-400">
         Page <span id="current-slide-num">1</span> of <span id="total-slides-num">1</span>
       </div>
       <button id="next-btn" onclick="nextSlide()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1 text-sm">
         Next &#8594;
       </button>
-      <button onclick="window.print()" class="ml-2 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/40 transition text-sm">
+      <button onclick="window.print()" class="ml-2 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/40 transition text-sm">
         Print / PDF
       </button>
     </div>
@@ -97,26 +103,43 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
 
   <!-- Main Slide Workspace -->
   <main class="max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <!-- Visualizer / Chart Canvas (7 cols on large screens) -->
-    <div class="lg:col-span-8 flex flex-col glass-card rounded-2xl p-5 overflow-hidden">
+    <!-- Visualizer / Chart Canvas (8 cols on large screens) -->
+    <div class="lg:col-span-8 flex flex-col glass-card rounded-2xl p-5 overflow-hidden relative">
       <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
         <div>
           <h2 id="slide-chart-title" class="text-lg font-bold text-slate-100 font-display">Chart Title</h2>
           <p id="slide-chart-subtitle" class="text-xs text-slate-400">Subtitle</p>
         </div>
-        <div id="chart-badge" class="px-2.5 py-1 rounded text-xs font-mono bg-emerald-950 text-emerald-400 border border-emerald-800">
+        <div id="chart-badge" class="px-2.5 py-1 rounded text-xs font-mono bg-blue-950 text-blue-300 border border-blue-800">
           CANDLESTICK
         </div>
       </div>
       
-      <!-- Chart DOM -->
-      <div id="echart-container" class="w-full flex-1 min-h-[420px] rounded-xl bg-slate-950/50"></div>
+      <!-- Chart DOM with Round Analyst Avatar Watermark Badge in Corner -->
+      <div class="relative w-full flex-1 min-h-[420px] rounded-xl bg-slate-950/50 overflow-hidden">
+        <!-- Round Analyst Avatar Watermark in Top-Right Corner -->
+        <div class="absolute top-3 right-3 z-20 flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-blue-500/40 shadow-[0_0_20px_rgba(19,100,226,0.35)]">
+          <div class="relative">
+            <img src="${ANALYST_AVATAR_B64}" alt="Dear Analyst" class="w-10 h-10 rounded-full object-cover ring-2 ring-blue-400 avatar-glow" />
+            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-blue-500 border-2 border-slate-950 rounded-full animate-pulse"></span>
+          </div>
+          <div class="pr-1.5">
+            <div class="text-[11px] font-bold text-white flex items-center gap-1 font-mono">
+              <span>Dear Analyst</span>
+              <span class="text-[8px] px-1.5 py-0.2 rounded-full bg-blue-950 text-blue-300 border border-blue-800 uppercase font-semibold">PRO</span>
+            </div>
+            <div class="text-[9px] text-blue-400/90 font-mono">Deep Dive Research</div>
+          </div>
+        </div>
+
+        <div id="echart-container" class="w-full h-full min-h-[420px]"></div>
+      </div>
     </div>
 
     <!-- Narrative Commentary Box (4 cols on large screens) -->
-    <div class="lg:col-span-4 flex flex-col glass-card rounded-2xl p-5 border-l-4 border-l-emerald-500">
+    <div class="lg:col-span-4 flex flex-col glass-card rounded-2xl p-5 border-l-4 border-l-blue-500">
       <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-3">
-        <h3 class="text-base font-semibold text-emerald-400 flex items-center gap-2">
+        <h3 class="text-base font-semibold text-blue-400 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
           Analyst Narrative
         </h3>
@@ -132,13 +155,13 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       <!-- Key Metrics summary card -->
       <div id="slide-metrics-box" class="mt-4 p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs font-mono space-y-1">
         <div class="text-slate-400 font-semibold mb-1">INTERACTIVE FEATURES ENABLED:</div>
-        <div id="interactive-features-list" class="text-emerald-400 flex flex-wrap gap-1"></div>
+        <div id="interactive-features-list" class="text-blue-400 flex flex-wrap gap-1"></div>
       </div>
     </div>
   </main>
 
   <footer class="max-w-7xl w-full mx-auto mt-6 text-center text-xs text-slate-500">
-    Generated with <span class="text-emerald-400 font-semibold">dearAnalyst</span> — Financial Visual Storytelling Studio
+    Generated with <span class="text-blue-400 font-semibold">dearAnalyst</span> — Financial Visual Storytelling Studio
   </footer>
 
   <script>
@@ -161,12 +184,12 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       container.innerHTML = '';
       slides.forEach((_, idx) => {
         const dot = document.createElement('button');
-        dot.className = \`w-3 h-3 rounded-full transition \${idx === currentIndex ? 'bg-emerald-400 ring-2 ring-emerald-500/50 scale-110' : 'bg-slate-700 hover:bg-slate-600'}\`;
+        dot.className = \`w-3 h-3 rounded-full transition \${idx === currentIndex ? 'bg-blue-400 ring-2 ring-blue-500/50 scale-110' : 'bg-slate-700 hover:bg-slate-600'}\`;
         dot.title = \`Slide \${idx + 1}\`;
         dot.onclick = () => loadSlide(idx);
         container.appendChild(dot);
       });
-    }
+    }   }
 
     function prevSlide() {
       if (currentIndex > 0) loadSlide(currentIndex - 1);
@@ -226,8 +249,8 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
 
     function buildEChartsOption(slide) {
       const FINANCIAL_PALETTE = [
-        '#10b981', '#06b6d4', '#8b5cf6', '#f59e0b', '#ec4899', 
-        '#3b82f6', '#14b8a6', '#f97316', '#a855f7', '#6366f1'
+        '#1364e2', '#f54e8b', '#9852d9', '#00c4cc', '#fca311',
+        '#10b981', '#6366f1', '#f97316', '#0ea5e9', '#ec4899'
       ];
 
       const chartType = slide.chartType || 'candlestick';
@@ -245,7 +268,17 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
       // 1. Period / Date Filtering
       const periodFilter = slide.periodFilter || { preset: 'all' };
       if (periodFilter && periodFilter.preset && periodFilter.preset !== 'all' && data.length > 0) {
-        if (periodFilter.preset === 'last_4') data = data.slice(-4);
+        if (periodFilter.preset === 'historical') {
+          const hist = data.filter(d => {
+            const str = String(d[xField] ?? '');
+            const yrMatch = str.match(/\b(19\d{2}|20\d{2})\b/) || str.match(/(?:[A-Za-z]{3}|FY)[-'\s]?(\d{2})\b/i);
+            const yr = yrMatch ? (yrMatch[1].length === 2 ? (parseInt(yrMatch[1], 10) < 70 ? 2000 + parseInt(yrMatch[1], 10) : 1900 + parseInt(yrMatch[1], 10)) : parseInt(yrMatch[1], 10)) : null;
+            const isEst = /\b(est|proj|forecast)\b|\((e|p|f|est|proj)\)/i.test(str) || (yr !== null && yr > 2024);
+            return !isEst;
+          });
+          if (hist.length > 0) data = hist;
+        }
+        else if (periodFilter.preset === 'last_4') data = data.slice(-4);
         else if (periodFilter.preset === 'last_8') data = data.slice(-8);
         else if (periodFilter.preset === 'last_12') data = data.slice(-12);
         else if (periodFilter.preset === 'last_20') data = data.slice(-20);
@@ -265,7 +298,16 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
         ? slide.yFields
         : [yField, y2Field].filter(Boolean);
 
-      const xData = data.map(d => d[xField] || '');
+      const xData = data.map(d => {
+        const raw = String(d[xField] || '');
+        if (slide.tagEstimates !== false) {
+          const yrMatch = raw.match(/\b(19\d{2}|20\d{2})\b/) || raw.match(/(?:[A-Za-z]{3}|FY)[-'\s]?(\d{2})\b/i);
+          const yr = yrMatch ? (yrMatch[1].length === 2 ? (parseInt(yrMatch[1], 10) < 70 ? 2000 + parseInt(yrMatch[1], 10) : 1900 + parseInt(yrMatch[1], 10)) : parseInt(yrMatch[1], 10)) : null;
+          const isEst = /\b(est|proj|forecast)\b|\((e|p|f|est|proj)\)/i.test(raw) || (yr !== null && yr > 2024);
+          if (isEst && !/\((e|est|p|proj)\)/i.test(raw)) return raw + ' (E)';
+        }
+        return raw;
+      });
       
       let tooltip = { trigger: 'item' };
       if (interactions.enableTooltip !== false) {
@@ -273,11 +315,11 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
           trigger: chartType === 'scatter' ? 'item' : (interactions.tooltipTrigger || 'axis'),
           axisPointer: {
             type: interactions.axisPointerType || 'cross',
-            crossStyle: { color: '#10b981' },
-            shadowStyle: { color: 'rgba(16, 185, 129, 0.1)' }
+            crossStyle: { color: '#1364e2' },
+            shadowStyle: { color: 'rgba(19, 100, 226, 0.1)' }
           },
-          backgroundColor: 'rgba(17, 24, 39, 0.92)',
-          borderColor: '#10b981',
+          backgroundColor: 'rgba(12, 18, 36, 0.95)',
+          borderColor: 'rgba(19, 100, 226, 0.6)',
           borderWidth: 1,
           textStyle: { color: '#f8fafc', fontSize: 12 }
         };
@@ -699,52 +741,68 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
         }
       }
 
+      const hasCustomXLabel = Boolean(
+        slide.xAxisLabel && !/^(period|fiscal\\s*period|date|timeline|timeline\\s*\\/\\s*dimension)$/i.test(slide.xAxisLabel.trim())
+      );
+
       return {
         backgroundColor: 'transparent',
         title: {
           show: false
         },
         tooltip: tooltip,
-        legend: {
-          show: interactions.enableLegend !== false,
-          textStyle: { color: '#94a3b8' },
-          top: 10
-        },
-        grid: {
-          left: '6%',
-          right: '5%',
-          bottom: interactions.enableZoom ? '15%' : '10%',
-          top: '12%',
-          containLabel: true
-        },
-        xAxis: chartType === 'pie' ? undefined : (
-          isHorizontalBar ? {
-            type: 'value',
-            scale: true,
-            name: slide.xAxisLabel || yField,
-            axisLine: { lineStyle: { color: '#475569' } },
-            axisLabel: { color: '#94a3b8' },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
-          } : isScatter ? {
-            type: 'value',
-            scale: true,
-            name: slide.xAxisLabel || xField,
-            axisLine: { lineStyle: { color: '#475569' } },
-            axisLabel: { color: '#94a3b8' },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
-          } : {
-            type: 'category',
-            data: xData,
-            name: slide.xAxisLabel || xField,
-            axisLine: { lineStyle: { color: '#475569' } },
-            axisLabel: { color: '#94a3b8' }
-          }
-        ),
-        yAxis: chartType === 'pie' ? undefined : yAxisConfig,
-        dataZoom: chartType === 'pie' ? [] : dataZoom,
-        series: series
-      };
-    }
+          legend: {
+            show: interactions.enableLegend !== false,
+            textStyle: { color: '#94a3b8' },
+            top: 10
+          },
+          grid: {
+            left: '6%',
+            right: '5%',
+            bottom: interactions.enableZoom ? '16%' : hasCustomXLabel ? '14%' : '10%',
+            top: '12%',
+            containLabel: true
+          },
+          xAxis: chartType === 'pie' ? undefined : (
+            isHorizontalBar ? {
+              type: 'value',
+              scale: true,
+              name: hasCustomXLabel ? slide.xAxisLabel : (yField || 'Value'),
+              nameLocation: 'middle',
+              nameGap: 30,
+              nameTextStyle: { color: '#94a3b8', fontSize: 11 },
+              axisLine: { lineStyle: { color: '#475569' } },
+              axisLabel: { color: '#94a3b8' },
+              splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
+            } : isScatter ? {
+              type: 'value',
+              scale: true,
+              name: hasCustomXLabel ? slide.xAxisLabel : (xField || 'X-Axis'),
+              nameLocation: 'middle',
+              nameGap: 30,
+              nameTextStyle: { color: '#94a3b8', fontSize: 11 },
+              axisLine: { lineStyle: { color: '#475569' } },
+              axisLabel: { color: '#94a3b8' },
+              splitLine: { lineStyle: { color: 'rgba(255,255,255,0.06)' } }
+            } : {
+              type: 'category',
+              data: xData,
+              name: hasCustomXLabel ? slide.xAxisLabel : '',
+              nameLocation: 'middle',
+              nameGap: 36,
+              nameTextStyle: { color: '#94a3b8', fontSize: 11 },
+              axisLine: { lineStyle: { color: '#475569' } },
+              axisLabel: {
+                color: (val) => (/(\\(\\s*E\\s*\\)|\\(est\\)|est|proj)/i.test(val) ? '#00c4cc' : '#94a3b8'),
+                fontSize: 11
+              }
+            }
+          ),
+          yAxis: chartType === 'pie' ? undefined : yAxisConfig,
+          dataZoom: chartType === 'pie' ? [] : dataZoom,
+          series: series
+        };
+      }
 
     window.onload = init;
   </script>

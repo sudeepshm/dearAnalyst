@@ -2,18 +2,19 @@
 
 import React, { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
+import { filterDataByPeriod, formatPeriodLabel, isEstimatePeriod } from '../utils/periodHelpers';
 
 const FINANCIAL_PALETTE = [
-  '#10b981', // Emerald
-  '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#14b8a6', // Teal
-  '#f97316', // Orange
-  '#a855f7', // Purple
-  '#6366f1', // Indigo
+  '#1364e2', // Flourish Electric Blue (Primary / Sales)
+  '#f54e8b', // Flourish Coral Rose (Operating Profit / Highlight)
+  '#9852d9', // Flourish Royal Violet (Net Profit / PAT)
+  '#00c4cc', // Flourish Cyan Teal (Margins / Cash Flow)
+  '#fca311', // Flourish Solar Amber (Cost Structure / Ratio)
+  '#10b981', // Flourish Fresh Mint (Growth / Yield)
+  '#6366f1', // Flourish Royal Indigo
+  '#f97316', // Flourish Tangerine Orange
+  '#0ea5e9', // Flourish Sky Blue
+  '#ec4899', // Flourish Hot Magenta
 ];
 
 export default function EChartsRenderer({
@@ -30,6 +31,7 @@ export default function EChartsRenderer({
   yFields = [],
   seriesConfigs = {},
   periodFilter = { preset: 'all' },
+  tagEstimates = true,
   breakdownMode = 'distribution',
   compositionPeriod = '',
   openField = 'Open',
@@ -83,32 +85,7 @@ export default function EChartsRenderer({
     const isRowMode = primaryMetricType === 'row' || secondaryMetricType === 'row' || xField === '__periods__';
 
     // 1. Apply Period / Date Timeline Slicing to dataset
-    let filteredData = [...data];
-    if (periodFilter && periodFilter.preset && periodFilter.preset !== 'all' && filteredData.length > 0) {
-      if (periodFilter.preset === 'last_4') {
-        filteredData = filteredData.slice(-4);
-      } else if (periodFilter.preset === 'last_8') {
-        filteredData = filteredData.slice(-8);
-      } else if (periodFilter.preset === 'last_12') {
-        filteredData = filteredData.slice(-12);
-      } else if (periodFilter.preset === 'last_20') {
-        filteredData = filteredData.slice(-20);
-      } else if (periodFilter.preset === 'custom') {
-        const { customStart, customEnd } = periodFilter;
-        const startIdx = customStart !== undefined && customStart !== ''
-          ? filteredData.findIndex((d) => String(d[xField] ?? '') === String(customStart))
-          : -1;
-        const endIdx = customEnd !== undefined && customEnd !== ''
-          ? filteredData.findIndex((d) => String(d[xField] ?? '') === String(customEnd))
-          : -1;
-
-        const s = startIdx >= 0 ? startIdx : 0;
-        const e = endIdx >= 0 ? endIdx + 1 : filteredData.length;
-        if (s < e) {
-          filteredData = filteredData.slice(s, e);
-        }
-      }
-    }
+    let filteredData = filterDataByPeriod(data, xField, periodFilter);
 
     // 2. Establish Effective Multi-Metric Array (seamless backward compatibility)
     let effectiveYFields = Array.isArray(yFields) && yFields.length > 0
@@ -120,8 +97,11 @@ export default function EChartsRenderer({
       effectiveYFields = [fallbackMetric];
     }
 
-    // 3. Extract X-Axis Data Points
-    const xData = filteredData.map((d) => d[xField] ?? '');
+    // 3. Extract X-Axis Data Points (with estimate tagging if enabled)
+    const xData = filteredData.map((d) => {
+      const raw = String(d[xField] ?? '');
+      return tagEstimates !== false ? formatPeriodLabel(raw, true) : raw;
+    });
 
     // Helper to extract series values for any given metric name
     const getMetricSeriesData = (metricKey) => {
@@ -144,15 +124,38 @@ export default function EChartsRenderer({
         trigger: chartType === 'scatter' ? 'item' : (interactions.tooltipTrigger || 'axis'),
         axisPointer: {
           type: interactions.axisPointerType || 'cross',
-          crossStyle: { color: '#10b981', width: 1 },
-          shadowStyle: { color: 'rgba(16, 185, 129, 0.08)' },
-          lineStyle: { color: '#06b6d4', width: 1.5 },
+          crossStyle: { color: '#1364e2', width: 1 },
+          shadowStyle: { color: 'rgba(19, 100, 226, 0.08)' },
+          lineStyle: { color: '#00c4cc', width: 1.5 },
         },
-        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-        borderColor: '#10b981',
+        backgroundColor: 'rgba(12, 18, 36, 0.95)',
+        borderColor: 'rgba(19, 100, 226, 0.6)',
         borderWidth: 1,
         padding: [10, 14],
         textStyle: { color: '#f8fafc', fontSize: 12, fontFamily: 'JetBrains Mono' },
+        formatter: (params) => {
+          if (!params) return '';
+          const items = Array.isArray(params) ? params : [params];
+          if (items.length === 0) return '';
+          const axisVal = items[0].axisValueLabel || items[0].name || '';
+          const isEst = isEstimatePeriod(axisVal);
+          let html = `<div style="font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+            <span>${axisVal}</span>
+            ${isEst ? '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(0,196,204,0.18);color:#00c4cc;border:1px solid rgba(0,196,204,0.35);font-weight:normal;">Forward Estimate (E)</span>' : ''}
+          </div>`;
+          items.forEach((item) => {
+            const val = Array.isArray(item.value) ? item.value[1] ?? item.value[0] : item.value;
+            const formattedVal = typeof val === 'number' ? Number(val).toLocaleString(undefined, { maximumFractionDigits: 2 }) : val;
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:11px;margin-top:3px;">
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:${item.color};display:inline-block;"></span>
+                <span style="color:#94a3b8;">${item.seriesName || ''}</span>
+              </span>
+              <strong style="color:#fff;font-family:'JetBrains Mono',monospace;">${formattedVal}</strong>
+            </div>`;
+          });
+          return html;
+        },
       };
     }
 
@@ -166,9 +169,9 @@ export default function EChartsRenderer({
         end: 100,
         height: 22,
         bottom: 8,
-        borderColor: '#334155',
-        fillerColor: 'rgba(16, 185, 129, 0.15)',
-        handleStyle: { color: '#10b981' },
+        borderColor: '#1e293b',
+        fillerColor: 'rgba(19, 100, 226, 0.15)',
+        handleStyle: { color: '#1364e2' },
         textStyle: { color: '#94a3b8' },
       });
       dataZoom.push({
@@ -523,14 +526,14 @@ export default function EChartsRenderer({
         data: primaryData,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#10b981' },
-            { offset: 1, color: 'rgba(16, 185, 129, 0.15)' },
+            { offset: 0, color: '#1364e2' },
+            { offset: 1, color: 'rgba(19, 100, 226, 0.15)' },
           ]),
           borderRadius: [5, 5, 0, 0],
         },
         emphasis: interactions.enableMouseHover ? {
           focus: 'series',
-          itemStyle: { color: '#34d399' },
+          itemStyle: { color: '#2563eb' },
         } : {},
       });
     } else if (chartType === 'area') {
@@ -643,8 +646,8 @@ export default function EChartsRenderer({
           scale: true,
           name: yAxisLabel || (series.find((s) => s.yAxisIndex === 0)?.name) || yField || 'Primary',
           position: 'left',
-          nameTextStyle: { color: '#10b981', fontSize: 11, padding: [0, 0, 4, 0] },
-          axisLine: { show: true, lineStyle: { color: '#10b981' } },
+          nameTextStyle: { color: '#1364e2', fontSize: 11, padding: [0, 0, 4, 0] },
+          axisLine: { show: true, lineStyle: { color: '#1364e2' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: {
             show: interactions.showGridLines !== false,
@@ -656,8 +659,8 @@ export default function EChartsRenderer({
           scale: true,
           name: y2AxisLabel || rightNames || y2Field || 'Secondary Metric',
           position: 'right',
-          nameTextStyle: { color: '#06b6d4', fontSize: 11, padding: [0, 0, 4, 0] },
-          axisLine: { show: true, lineStyle: { color: '#06b6d4' } },
+          nameTextStyle: { color: '#f54e8b', fontSize: 11, padding: [0, 0, 4, 0] },
+          axisLine: { show: true, lineStyle: { color: '#f54e8b' } },
           axisLabel: {
             color: '#94a3b8',
             fontSize: 11,
@@ -693,6 +696,10 @@ export default function EChartsRenderer({
       };
     }
 
+    const hasCustomXLabel = Boolean(
+      xAxisLabel && !/^(period|fiscal\s*period|date|timeline|timeline\s*\/\s*dimension)$/i.test(xAxisLabel.trim())
+    );
+
     let xAxisConfig;
     if (isCartesian) {
       if (isHorizontalBar) {
@@ -700,10 +707,10 @@ export default function EChartsRenderer({
         xAxisConfig = {
           type: 'value',
           scale: true,
-          name: xAxisLabel || yField,
+          name: hasCustomXLabel ? xAxisLabel : (yField || 'Value'),
           nameLocation: 'middle',
-          nameGap: 24,
-          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          nameGap: 30,
+          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
           axisLine: { lineStyle: { color: '#334155' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: {
@@ -716,10 +723,10 @@ export default function EChartsRenderer({
         xAxisConfig = {
           type: 'value',
           scale: true,
-          name: xAxisLabel || xField,
+          name: hasCustomXLabel ? xAxisLabel : (xField || 'X-Axis'),
           nameLocation: 'middle',
-          nameGap: 24,
-          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          nameGap: 30,
+          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
           axisLine: { lineStyle: { color: '#334155' } },
           axisLabel: { color: '#94a3b8', fontSize: 11 },
           splitLine: {
@@ -731,12 +738,15 @@ export default function EChartsRenderer({
         xAxisConfig = {
           type: 'category',
           data: xData,
-          name: xAxisLabel || xField,
+          name: hasCustomXLabel ? xAxisLabel : '',
           nameLocation: 'middle',
-          nameGap: 24,
-          nameTextStyle: { color: '#64748b', fontSize: 11, fontWeight: 500 },
+          nameGap: 36,
+          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
           axisLine: { lineStyle: { color: '#334155' } },
-          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          axisLabel: {
+            color: (val) => (isEstimatePeriod(val) ? '#00c4cc' : '#94a3b8'),
+            fontSize: 11,
+          },
           splitLine: {
             show: interactions.showGridLines !== false,
             lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
@@ -773,7 +783,7 @@ export default function EChartsRenderer({
             left: '4%',
             right: isDualAxis ? '6%' : '4%',
             top: chartTitle ? 72 : 45,
-            bottom: interactions.enableZoom ? 48 : 32,
+            bottom: interactions.enableZoom ? 54 : hasCustomXLabel ? 58 : 36,
             containLabel: true,
           }
         : undefined,
@@ -806,6 +816,7 @@ export default function EChartsRenderer({
     y2Field,
     yFields,
     periodFilter,
+    tagEstimates,
     breakdownMode,
     compositionPeriod,
     openField,

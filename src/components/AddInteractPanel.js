@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { analyzePeriodsSummary } from '../utils/periodHelpers';
 import { 
   BarChart3, 
   CandlestickChart, 
@@ -29,16 +30,16 @@ import VisualChartCatalogue from '@/components/VisualChartCatalogue';
 import FinancialTablePicker from '@/components/FinancialTablePicker';
 
 const FINANCIAL_PALETTE = [
-  '#10b981', // Emerald
-  '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#14b8a6', // Teal
-  '#f97316', // Orange
-  '#a855f7', // Purple
-  '#6366f1', // Indigo
+  '#1364e2', // Flourish Electric Blue (Primary / Sales)
+  '#f54e8b', // Flourish Coral Rose (Operating Profit / Highlight)
+  '#9852d9', // Flourish Royal Violet (Net Profit / PAT)
+  '#00c4cc', // Flourish Cyan Teal (Margins / Cash Flow)
+  '#fca311', // Flourish Solar Amber (Cost Structure / Ratio)
+  '#10b981', // Flourish Fresh Mint (Growth / Yield)
+  '#6366f1', // Flourish Royal Indigo
+  '#f97316', // Flourish Tangerine Orange
+  '#0ea5e9', // Flourish Sky Blue
+  '#ec4899', // Flourish Hot Magenta
 ];
 
 export default function AddInteractPanel({
@@ -65,6 +66,8 @@ export default function AddInteractPanel({
   onUpdateSeriesConfig,
   periodFilter = { preset: 'all' },
   setPeriodFilter,
+  tagEstimates = true,
+  setTagEstimates,
   breakdownMode = 'distribution',
   setBreakdownMode,
   compositionPeriod = '',
@@ -95,6 +98,11 @@ export default function AddInteractPanel({
   const [isCatalogueOpen, setIsCatalogueOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Period analysis: count historical actuals vs forward estimates
+  const periodSummary = useMemo(() => {
+    return analyzePeriodsSummary(availablePeriods);
+  }, [availablePeriods]);
 
   // Harmonized multi-metric array (with backward compatibility)
   const effectiveYFields = Array.isArray(yFields) && yFields.length > 0
@@ -133,7 +141,8 @@ export default function AddInteractPanel({
   };
 
   const periodPresets = [
-    { id: 'all', label: 'All Quarters' },
+    { id: 'all', label: 'All Periods' },
+    { id: 'historical', label: 'Historical Only' },
     { id: 'last_4', label: 'Last 4' },
     { id: 'last_8', label: 'Last 8' },
     { id: 'last_12', label: 'Last 12' },
@@ -190,7 +199,7 @@ export default function AddInteractPanel({
           onClick={() => setActiveTab('fields')}
           className={`flex-1 py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
             activeTab === 'fields'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -202,7 +211,7 @@ export default function AddInteractPanel({
           onClick={() => setActiveTab('interact')}
           className={`flex-1 py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
             activeTab === 'interact'
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm'
+              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -217,8 +226,8 @@ export default function AddInteractPanel({
           {sheetNames.length > 0 && (
             <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-semibold flex items-center gap-1.5">
-                  <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <label className="text-xs font-mono uppercase tracking-wider text-blue-400 font-semibold flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-4 h-4 text-blue-400" />
                   <span>Source Worksheet</span>
                 </label>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
@@ -228,7 +237,7 @@ export default function AddInteractPanel({
               <select
                 value={selectedSheet}
                 onChange={(e) => onSheetChange && onSheetChange(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-emerald-400"
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-blue-400"
               >
                 {sheetNames.map((s) => (
                   <option key={s} value={s}>
@@ -248,9 +257,9 @@ export default function AddInteractPanel({
               <button
                 type="button"
                 onClick={() => setIsCatalogueOpen(true)}
-                className="text-[11px] font-mono text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-500/30 transition hover:border-emerald-400 shadow-sm"
+                className="text-[11px] font-mono text-blue-300 hover:text-blue-200 flex items-center gap-1 bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-500/40 transition hover:border-blue-400 shadow-sm"
               >
-                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <Sparkles className="w-3 h-3 text-blue-400" />
                 <span>Browse Catalogue</span>
               </button>
             </div>
@@ -264,11 +273,11 @@ export default function AddInteractPanel({
                     onClick={() => setChartType(item.id)}
                     className={`p-2 rounded-xl border text-xs font-mono flex items-center gap-2 transition text-left ${
                       isSelected
-                        ? 'border-emerald-400 bg-emerald-950/40 text-emerald-300 shadow-md shadow-emerald-500/10'
+                        ? 'border-blue-400 bg-blue-950/50 text-blue-300 shadow-md shadow-blue-500/20'
                         : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-emerald-400' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-slate-500'}`} />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );
@@ -387,10 +396,10 @@ export default function AddInteractPanel({
                 <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
-                      <PieChart className="w-3.5 h-3.5 text-emerald-400" />
+                      <PieChart className="w-3.5 h-3.5 text-blue-400" />
                       <span>Pie Slice Mapping Mode:</span>
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-slate-700">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-blue-300 border border-slate-700">
                       {breakdownMode === 'composition' ? 'Quarter Breakdown' : 'Timeline Share'}
                     </span>
                   </div>
@@ -401,7 +410,7 @@ export default function AddInteractPanel({
                       onClick={() => setBreakdownMode && setBreakdownMode('composition')}
                       className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
                         breakdownMode === 'composition'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                          ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 font-semibold shadow-sm'
                           : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -412,7 +421,7 @@ export default function AddInteractPanel({
                       onClick={() => setBreakdownMode && setBreakdownMode('distribution')}
                       className={`py-1.5 px-2 rounded-md font-medium transition text-center ${
                         breakdownMode === 'distribution'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold shadow-sm'
+                          ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 font-semibold shadow-sm'
                           : 'text-slate-400 hover:text-slate-200'
                       }`}
                     >
@@ -496,7 +505,7 @@ export default function AddInteractPanel({
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-5 gap-1 text-[11px] font-mono">
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 text-[11px] font-mono">
                         {periodPresets.map((preset) => {
                           const isActive = (periodFilter?.preset || 'all') === preset.id;
                           return (
@@ -557,7 +566,7 @@ export default function AddInteractPanel({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-5 gap-1 text-[11px] font-mono">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-1 text-[11px] font-mono">
                     {periodPresets.map((preset) => {
                       const isActive = (periodFilter?.preset || 'all') === preset.id;
                       return (
@@ -576,6 +585,24 @@ export default function AddInteractPanel({
                       );
                     })}
                   </div>
+
+                  {/* Forward Estimate Tagging Toggle */}
+                  {periodSummary.hasEstimates && (
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs font-mono">
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none">
+                        <input
+                          type="checkbox"
+                          checked={tagEstimates !== false}
+                          onChange={(e) => setTagEstimates && setTagEstimates(e.target.checked)}
+                          className="w-3.5 h-3.5 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500/20"
+                        />
+                        <span>Tag Forward Estimates with <strong className="text-cyan-400 font-bold">(E)</strong></span>
+                      </label>
+                      <span className="text-[10px] text-cyan-400 font-medium bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
+                        {periodSummary.estimateCount} Est ({periodSummary.estimateLabels.join(', ')})
+                      </span>
+                    </div>
+                  )}
 
                   {periodFilter?.preset === 'custom' && availablePeriods.length > 0 && (
                     <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/60">
@@ -610,20 +637,31 @@ export default function AddInteractPanel({
                 {/* 2. Timeline X-Axis Confirmation Banner */}
                 <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800/90 flex items-center justify-between text-xs font-mono">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                    <Calendar className="w-3.5 h-3.5 text-blue-400" />
                     <span className="text-slate-400">Timeline (X-Axis):</span>
                     <span className="text-slate-100 font-semibold">{xField || 'Period'}</span>
                   </div>
-                  <span className="text-[10px] text-emerald-400/90 font-medium">
-                    {availablePeriods.length} Quarters Available
-                  </span>
+                  {periodSummary.hasEstimates ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-slate-300 font-medium bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                        {periodSummary.historicalCount} Historical
+                      </span>
+                      <span className="text-[10px] text-cyan-300 font-semibold bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-500/40">
+                        {periodSummary.estimateCount} Estimates (E)
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[10px] text-blue-400/90 font-medium">
+                      {availablePeriods.length} Periods Available
+                    </span>
+                  )}
                 </div>
 
                 {/* 3. Active Chart Series Pills */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-mono text-slate-300 font-semibold flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-emerald-400" />
+                      <Layers className="w-3.5 h-3.5 text-blue-400" />
                       <span>Active Chart Series ({effectiveYFields.length}):</span>
                     </span>
                     {effectiveYFields.length > 0 && (
@@ -721,7 +759,7 @@ export default function AddInteractPanel({
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Titles & Axis Label Customization */}
           <div className="space-y-2.5">
-            <label className="block text-xs font-mono uppercase tracking-wider text-emerald-400">
+            <label className="block text-xs font-mono uppercase tracking-wider text-blue-400 font-semibold">
               A. Chart Title & Axis Names
             </label>
 
@@ -732,7 +770,7 @@ export default function AddInteractPanel({
                 value={chartTitle}
                 onChange={(e) => setChartTitle(e.target.value)}
                 placeholder="e.g. Q3 Market Volatility Index"
-                className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-400"
               />
             </div>
 
@@ -743,7 +781,7 @@ export default function AddInteractPanel({
                 value={chartSubtitle}
                 onChange={(e) => setChartSubtitle(e.target.value)}
                 placeholder="e.g. Dual-axis comparison with 5-day MA"
-                className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-400"
               />
             </div>
 
@@ -757,7 +795,7 @@ export default function AddInteractPanel({
                   value={xAxisLabel}
                   onChange={(e) => setXAxisLabel(e.target.value)}
                   placeholder={chartType === 'horizontal-clustered-bar' ? 'e.g. Value / USD' : 'e.g. Timeline'}
-                  className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                  className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-400"
                 />
               </div>
               <div>
@@ -773,7 +811,7 @@ export default function AddInteractPanel({
                   value={yAxisLabel}
                   onChange={(e) => setYAxisLabel(e.target.value)}
                   placeholder={chartType === 'horizontal-clustered-bar' ? 'e.g. Entity / Sector' : 'e.g. Value / USD'}
-                  className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
+                  className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-400"
                 />
               </div>
               {['combo', 'dual-line'].includes(chartType) && (
@@ -781,33 +819,36 @@ export default function AddInteractPanel({
                   <span className="text-[11px] font-mono text-cyan-400">Right Y-Axis:</span>
                   <input
                     type="text"
-                    value={y2AxisLabel || ''}
-                    onChange={(e) => setY2AxisLabel && setY2AxisLabel(e.target.value)}
-                    placeholder="e.g. Rate / %"
+                    value={y2AxisLabel}
+                    onChange={(e) => setY2AxisLabel(e.target.value)}
+                    placeholder="e.g. Operating Margin %"
                     className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
                   />
                 </div>
               )}
             </div>
+            <p className="text-[10px] font-mono text-slate-500 pt-0.5">
+              Tip: Leave X-Axis blank to keep timeline clean. Custom names render with generous margin below dates.
+            </p>
           </div>
 
           {/* Interactive Feature Toggles: Tooltips, Mousehover, Zoom */}
           <div className="space-y-3 pt-3 border-t border-slate-800">
-            <label className="block text-xs font-mono uppercase tracking-wider text-emerald-400">
+            <label className="block text-xs font-mono uppercase tracking-wider text-blue-400 font-semibold">
               B. Interactive Tooltip & Hover Options
             </label>
 
             {/* Tooltip Toggle */}
             <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
               <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-emerald-400" />
+                <Eye className="w-4 h-4 text-blue-400" />
                 <span className="text-xs font-mono text-slate-200">Interactive Tooltip</span>
               </div>
               <input
                 type="checkbox"
                 checked={interactions.enableTooltip}
                 onChange={(e) => updateInteraction('enableTooltip', e.target.checked)}
-                className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
               />
             </div>
 
@@ -850,7 +891,7 @@ export default function AddInteractPanel({
                 type="checkbox"
                 checked={interactions.enableMouseHover}
                 onChange={(e) => updateInteraction('enableMouseHover', e.target.checked)}
-                className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
               />
             </div>
 
@@ -864,7 +905,7 @@ export default function AddInteractPanel({
                 type="checkbox"
                 checked={interactions.enableZoom}
                 onChange={(e) => updateInteraction('enableZoom', e.target.checked)}
-                className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
               />
             </div>
 
@@ -875,7 +916,7 @@ export default function AddInteractPanel({
                 type="checkbox"
                 checked={interactions.showGridLines}
                 onChange={(e) => updateInteraction('showGridLines', e.target.checked)}
-                className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
+                className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
               />
             </div>
 
@@ -883,14 +924,14 @@ export default function AddInteractPanel({
             {['multi-line', 'line', 'dual-line'].includes(chartType) && (
               <div className="flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-800">
                 <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-emerald-400" />
+                  <Layers className="w-4 h-4 text-blue-400" />
                   <span className="text-xs font-mono text-slate-200">Area Shading (Translucent Gradient)</span>
                 </div>
                 <input
                   type="checkbox"
                   checked={interactions.enableAreaShading || false}
                   onChange={(e) => updateInteraction('enableAreaShading', e.target.checked)}
-                  className="w-4 h-4 rounded text-emerald-500 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
+                  className="w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700 focus:ring-0 cursor-pointer"
                 />
               </div>
             )}
@@ -904,8 +945,8 @@ export default function AddInteractPanel({
           <div className="relative w-full max-w-6xl max-h-[92vh] bg-slate-950 border border-slate-700/80 rounded-3xl p-6 overflow-y-auto shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white font-display">

@@ -10,22 +10,36 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          500: '#10b981',
-          600: '#059669',
-          900: '#064e3b',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          500: '#1364e2',
+          600: '#1d4ed8',
+          900: '#1e3a8a',
+        },
+        flourish: {
+          blue: '#1364e2',
+          indigo: '#1d4ed8',
+          violet: '#9852d9',
+          purple: '#7c3aed',
+          coral: '#f54e8b',
+          cyan: '#00c4cc',
+          amber: '#fca311',
+          mint: '#10b981',
+          dark: '#060913',
+          surface: '#0b1122',
+          card: '#0c1224',
+          border: 'rgba(255, 255, 255, 0.08)'
         },
         market: {
           up: '#10b981',
           down: '#ef4444',
           neutral: '#64748b',
-          glow: '#06b6d4',
-          dark: '#0a0f1d',
-          surface: '#111827',
-          card: '#1e293b',
-          border: '#334155'
+          glow: '#1364e2',
+          dark: '#060913',
+          surface: '#0b1122',
+          card: '#0c1224',
+          border: '#1e293b'
         }
       },
       fontFamily: {

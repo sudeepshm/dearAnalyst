@@ -17,16 +17,16 @@ import {
 } from 'lucide-react';
 
 const FINANCIAL_PALETTE = [
-  '#10b981', // Emerald
-  '#06b6d4', // Cyan
-  '#8b5cf6', // Violet
-  '#f59e0b', // Amber
-  '#ec4899', // Pink
-  '#3b82f6', // Blue
-  '#14b8a6', // Teal
-  '#f97316', // Orange
-  '#a855f7', // Purple
-  '#6366f1', // Indigo
+  '#1364e2', // Flourish Electric Blue (Primary / Sales)
+  '#f54e8b', // Flourish Coral Rose (Operating Profit / Highlight)
+  '#9852d9', // Flourish Royal Violet (Net Profit / PAT)
+  '#00c4cc', // Flourish Cyan Teal (Margins / Cash Flow)
+  '#fca311', // Flourish Solar Amber (Cost Structure / Ratio)
+  '#10b981', // Flourish Fresh Mint (Growth / Yield)
+  '#6366f1', // Flourish Royal Indigo
+  '#f97316', // Flourish Tangerine Orange
+  '#0ea5e9', // Flourish Sky Blue
+  '#ec4899', // Flourish Hot Magenta
 ];
 
 // Smart presets for common financial charts
@@ -179,8 +179,8 @@ export default function FinancialTablePicker({
       {/* 1. Finance YouTuber 1-Click Presets Bar */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+          <label className="text-[11px] font-semibold uppercase tracking-wider text-blue-400 flex items-center gap-1.5 font-mono">
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
             <span>1-Click Financial Views</span>
           </label>
           <span className="text-[10px] text-slate-400">Quick Presets</span>
@@ -194,14 +194,14 @@ export default function FinancialTablePicker({
                 key={p.id}
                 type="button"
                 onClick={() => handleApplyPreset(p)}
-                className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-850 text-left transition flex items-center justify-between group shadow-sm"
+                className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-left transition flex items-center justify-between group shadow-sm"
               >
                 <div className="flex items-center gap-2 truncate">
-                  <div className="p-1 rounded-md bg-emerald-950/60 border border-emerald-800/40 text-emerald-400 group-hover:scale-105 transition">
+                  <div className="p-1 rounded-md bg-blue-950/70 border border-blue-800/50 text-blue-400 group-hover:scale-105 transition">
                     <Icon className="w-3.5 h-3.5" />
                   </div>
                   <div className="truncate">
-                    <div className="font-semibold text-slate-200 truncate group-hover:text-emerald-300">
+                    <div className="font-semibold text-slate-200 truncate group-hover:text-blue-300">
                       {p.label}
                     </div>
                     <div className="text-[10px] text-slate-400 truncate">
@@ -224,7 +224,7 @@ export default function FinancialTablePicker({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search metric (e.g. Sales, Tax, Net Profit)..."
-            className="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-400 transition"
+            className="w-full bg-slate-950 border border-slate-700/80 rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-400 transition"
           />
           {searchQuery && (
             <button
@@ -242,7 +242,7 @@ export default function FinancialTablePicker({
           onClick={() => setShowSelectedOnly(!showSelectedOnly)}
           className={`px-2.5 py-1.5 rounded-lg border flex items-center gap-1 text-[11px] transition ${
             showSelectedOnly
-              ? 'bg-emerald-950/70 border-emerald-500 text-emerald-300 font-semibold shadow-sm'
+              ? 'bg-blue-950/80 border-blue-500 text-blue-300 font-semibold shadow-sm'
               : 'bg-slate-900 border-slate-750 text-slate-300 hover:border-slate-600'
           }`}
           title="Show only selected series"
@@ -302,7 +302,7 @@ export default function FinancialTablePicker({
                   onClick={() => handleToggleMetric(metric)}
                   className={`grid grid-cols-12 px-3 py-2 items-center cursor-pointer select-none transition ${
                     isSelected
-                      ? 'bg-emerald-950/30 text-slate-100 hover:bg-emerald-950/45'
+                      ? 'bg-blue-950/25 text-slate-100 hover:bg-blue-950/40 border-l-2 border-l-blue-500'
                       : 'hover:bg-slate-900/60 text-slate-300'
                   }`}
                 >
@@ -311,7 +311,7 @@ export default function FinancialTablePicker({
                     <div
                       className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition ${
                         isSelected
-                          ? 'border-emerald-400 bg-emerald-500 text-slate-950 shadow-sm'
+                          ? 'border-blue-400 bg-blue-600 text-white shadow-sm'
                           : 'border-slate-700 bg-slate-900 hover:border-slate-500'
                       }`}
                     >
@@ -325,7 +325,7 @@ export default function FinancialTablePicker({
                       />
                     )}
 
-                    <span className={`truncate ${isSelected ? 'font-semibold text-emerald-200' : 'text-slate-200'}`}>
+                    <span className={`truncate ${isSelected ? 'font-semibold text-blue-200' : 'text-slate-200'}`}>
                       {metric}
                     </span>
                   </div>
@@ -375,7 +375,7 @@ export default function FinancialTablePicker({
                         </div>
                       ) : (
                         <span
-                          className="px-1.5 py-0.5 rounded text-[9px] font-medium border border-emerald-800/60 bg-emerald-950/80 text-emerald-300"
+                          className="px-1.5 py-0.5 rounded text-[9px] font-medium border border-blue-800/60 bg-blue-950/80 text-blue-300"
                         >
                           #{selectedIdx + 1}
                         </span>
@@ -394,7 +394,7 @@ export default function FinancialTablePicker({
         <div className="px-3 py-1.5 bg-slate-900/80 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
           <div className="flex items-center gap-2">
             <span>
-              <strong className="text-emerald-400">{selectedMetrics.length}</strong> metrics plotted
+              <strong className="text-blue-400">{selectedMetrics.length}</strong> metrics plotted
             </span>
             {selectedMetrics.length > 0 && (
               <button

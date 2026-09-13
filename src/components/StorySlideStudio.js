@@ -13,10 +13,15 @@ import {
   Save, 
   ExternalLink,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Tv,
+  Monitor,
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
 import AddInteractPanel from './AddInteractPanel';
 import EChartsRenderer from './EChartsRenderer';
+import FinancialKpiRibbon from './FinancialKpiRibbon';
 
 export default function StorySlideStudio({
   dataset,
@@ -26,6 +31,8 @@ export default function StorySlideStudio({
 }) {
   const [storyTitle, setStoryTitle] = useState('Tech Index Market Narrative 2026');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isBroadcastMode, setIsBroadcastMode] = useState(false);
+  const [showAvatarCard, setShowAvatarCard] = useState(false);
 
   // Normalize sheets map from dataset
   const sheets = dataset.sheets || {
@@ -72,11 +79,12 @@ export default function StorySlideStudio({
         yFields: [primaryMetric, secondaryMetric].filter(Boolean),
         seriesConfigs: {},
         periodFilter: { preset: 'all', customStart: '', customEnd: '' },
+        tagEstimates: true,
         breakdownMode: 'distribution',
         compositionPeriod: '',
         chartTitle,
         chartSubtitle,
-        xAxisLabel: 'Fiscal Period',
+        xAxisLabel: '',
         yAxisLabel: primaryMetric,
         y2AxisLabel: secondaryMetric,
       };
@@ -93,6 +101,7 @@ export default function StorySlideStudio({
         yFields: [numCols[0] || cols[1] || 'Close', numCols[1] || cols[2] || 'Volume'].filter(Boolean),
         seriesConfigs: {},
         periodFilter: { preset: 'all', customStart: '', customEnd: '' },
+        tagEstimates: true,
         breakdownMode: 'distribution',
         compositionPeriod: '',
         openField: cols.find((c) => /open/i.test(c)) || numCols[0] || cols[0] || 'Open',
@@ -101,7 +110,7 @@ export default function StorySlideStudio({
         highField: cols.find((c) => /high/i.test(c)) || numCols[3] || cols[3] || 'High',
         chartTitle: `${sheetName} Market Performance`,
         chartSubtitle: `Detailed chart breakdown on sheet: "${sheetName}"`,
-        xAxisLabel: 'Timeline / Dimension',
+        xAxisLabel: '',
         yAxisLabel: 'Value / Left Axis',
         y2AxisLabel: 'Right Axis',
       };
@@ -266,10 +275,14 @@ export default function StorySlideStudio({
       {/* Top Global Action Bar: Title, Page Tabs, Download Story Button */}
       <div className="glass-panel rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 border border-slate-800 shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 p-0.5 shadow-md shadow-emerald-500/20 flex-shrink-0">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-bold text-emerald-400">
-              dA
-            </div>
+          {/* Circular Analyst Avatar with Magnifying Glass */}
+          <div className="relative group cursor-pointer flex-shrink-0" title="Dear Analyst • Verified Research">
+            <img
+              src="/analyst_avatar.jpg"
+              alt="Dear Analyst"
+              className="w-11 h-11 rounded-full object-cover ring-2 ring-blue-400 avatar-glow group-hover:scale-105 transition duration-300"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-500 border-2 border-slate-950 rounded-full animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -277,18 +290,36 @@ export default function StorySlideStudio({
                 type="text"
                 value={storyTitle}
                 onChange={(e) => setStoryTitle(e.target.value)}
-                className="text-base sm:text-lg font-bold text-white bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-400 focus:outline-none transition px-1"
+                className="text-base sm:text-lg font-bold text-white bg-transparent border-b border-transparent hover:border-slate-700 focus:border-blue-400 focus:outline-none transition px-1"
                 placeholder="Story Title"
               />
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-950/80 text-blue-300 border border-blue-800/80 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-blue-400" />
+                <span>Flourish Deck</span>
+              </span>
             </div>
             <p className="text-xs font-mono text-slate-400">
-              Active File: <strong className="text-emerald-400">{dataset.fileName}</strong> {sheetNames.length > 1 ? `(${sheetNames.length} sheets • Active on Page ${activeSlideIndex + 1}: "${currentSlideSheetName}")` : `(${activeSheetData.totalRows} records)`}
+              Active File: <strong className="text-blue-400">{dataset.fileName}</strong> {sheetNames.length > 1 ? `(${sheetNames.length} sheets • Active on Page ${activeSlideIndex + 1}: "${currentSlideSheetName}")` : `(${activeSheetData.totalRows} records)`}
             </p>
           </div>
         </div>
 
-        {/* Global Toolbar: Switch file, Add Page, and "Download Story" (Available anytime irrespective of pages!) */}
+        {/* Global Toolbar: Switch file, Broadcast Mode, Add Page, and "Download Story" */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* YouTube Broadcast Mode Toggle */}
+          <button
+            onClick={() => setIsBroadcastMode(!isBroadcastMode)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono transition flex items-center gap-1.5 border ${
+              isBroadcastMode
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold border-blue-400 shadow-[0_0_20px_rgba(19,100,226,0.5)]'
+                : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border-slate-800'
+            }`}
+            title="Toggle YouTube Presentation / Broadcast Mode"
+          >
+            <Tv className="w-3.5 h-3.5" />
+            <span>{isBroadcastMode ? 'Exit Broadcast' : 'Broadcast Mode'}</span>
+          </button>
+
           <button
             onClick={onResetData}
             className="px-3 py-1.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition"
@@ -298,7 +329,7 @@ export default function StorySlideStudio({
 
           <button
             onClick={handleAddNewSlide}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-mono text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-700/50 transition flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-mono text-blue-300 bg-blue-950/50 hover:bg-blue-900/50 border border-blue-700/50 transition flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add New Page</span>
@@ -322,15 +353,16 @@ export default function StorySlideStudio({
                   yFields: s.yFields || [s.yField, s.y2Field].filter(Boolean),
                   seriesConfigs: s.seriesConfigs || {},
                   periodFilter: s.periodFilter || { preset: 'all' },
+                  tagEstimates: s.tagEstimates !== false,
                   breakdownMode: s.breakdownMode || 'distribution',
                   compositionPeriod: s.compositionPeriod || '',
                 };
               });
               onDownloadStory({ storyTitle, slides: exportSlides, sheets });
             }}
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-[#00ff87] via-[#10b981] to-[#00d2ff] hover:scale-[1.03] shadow-[0_0_25px_rgba(0,255,135,0.35)] hover:shadow-[0_0_40px_rgba(0,255,135,0.55)] transition-all duration-300 flex items-center gap-2 border border-emerald-300/50"
+            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#1364e2] via-[#2563eb] to-[#9852d9] hover:scale-[1.03] shadow-[0_0_25px_rgba(19,100,226,0.45)] hover:shadow-[0_0_40px_rgba(19,100,226,0.65)] transition-all duration-300 flex items-center gap-2 border border-blue-300/40"
           >
-            <Download className="w-4 h-4 text-slate-950" />
+            <Download className="w-4 h-4 text-white" />
             <span>Download Story</span>
           </button>
         </div>
@@ -347,12 +379,12 @@ export default function StorySlideStudio({
               onClick={() => setActiveSlideIndex(idx)}
               className={`group flex-shrink-0 cursor-pointer px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center gap-3 transition-all duration-200 ${
                 isActive
-                  ? 'bg-gradient-to-r from-emerald-950/80 to-slate-900/90 border-[#00ff87]/60 text-[#00ff87] shadow-[0_0_20px_rgba(0,255,135,0.18)] scale-[1.02] font-semibold'
+                  ? 'bg-gradient-to-r from-blue-950/90 to-indigo-950/80 border-blue-500/60 text-blue-300 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-[1.02] font-semibold'
                   : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
               <div className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#00ff87] shadow-[0_0_8px_#00ff87]' : 'bg-slate-600'}`} />
+                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-blue-400 shadow-[0_0_8px_#1364e2]' : 'bg-slate-600'}`} />
                 <span className="font-semibold">Page {idx + 1}</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -369,7 +401,7 @@ export default function StorySlideStudio({
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDuplicateSlide(idx); }}
                   title="Duplicate Page"
-                  className="p-1 hover:text-emerald-400 rounded hover:bg-slate-800"
+                  className="p-1 hover:text-blue-400 rounded hover:bg-slate-800"
                 >
                   <Copy className="w-3 h-3" />
                 </button>
@@ -389,103 +421,115 @@ export default function StorySlideStudio({
       </div>
 
       {/* Workspace Grid: Left Configuration + Center Visualization + Right/Side Narrative Text Box */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Select Graph & Add-Interact Options (4 columns) */}
-        <div className="lg:col-span-4 space-y-4">
-          <AddInteractPanel
-            sheetNames={sheetNames}
-            selectedSheet={currentSlideSheetName}
-            onSheetChange={handleSlideSheetChange}
-            columns={activeOrientedData.columns}
-            columnTypes={activeOrientedData.columnTypes}
-            data={activeOrientedData.data}
-            orientation={slideOrientation}
-            onOrientationChange={handleOrientationChange}
-            isFinancial={rawSheet.isFinancial || false}
-            chartType={currentSlide.chartType}
-            setChartType={(val) => updateCurrentSlide({ chartType: val })}
-            xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
-            setXField={(val) => updateCurrentSlide({ xField: val })}
-            yField={currentSlide.yField || activeOrientedData.columns[1]}
-            setYField={(val) => updateCurrentSlide({ yField: val })}
-            y2Field={currentSlide.y2Field}
-            setY2Field={(val) => updateCurrentSlide({ y2Field: val })}
-            yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
-            setYFields={(val) => updateCurrentSlide({ yFields: val })}
-            seriesConfigs={currentSlide.seriesConfigs || {}}
-            onUpdateSeriesConfig={(metric, cfg) => {
-              updateCurrentSlide({
-                seriesConfigs: {
-                  ...(currentSlide.seriesConfigs || {}),
-                  [metric]: { ...((currentSlide.seriesConfigs || {})[metric] || {}), ...cfg },
-                },
-              });
-            }}
-            periodFilter={currentSlide.periodFilter || { preset: 'all' }}
-            setPeriodFilter={(val) => updateCurrentSlide({ periodFilter: val })}
-            breakdownMode={currentSlide.breakdownMode || 'distribution'}
-            setBreakdownMode={(val) => updateCurrentSlide({ breakdownMode: val })}
-            compositionPeriod={currentSlide.compositionPeriod || ''}
-            setCompositionPeriod={(val) => updateCurrentSlide({ compositionPeriod: val })}
-            availablePeriods={(activeOrientedData.data || []).map((d) => String(d[currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])] ?? '')).filter(Boolean)}
-            openField={currentSlide.openField}
-            setOpenField={(val) => updateCurrentSlide({ openField: val })}
-            closeField={currentSlide.closeField}
-            setCloseField={(val) => updateCurrentSlide({ closeField: val })}
-            lowField={currentSlide.lowField}
-            setLowField={(val) => updateCurrentSlide({ lowField: val })}
-            highField={currentSlide.highField}
-            setHighField={(val) => updateCurrentSlide({ highField: val })}
-            chartTitle={currentSlide.chartTitle}
-            setChartTitle={(val) => updateCurrentSlide({ chartTitle: val })}
-            chartSubtitle={currentSlide.chartSubtitle}
-            setChartSubtitle={(val) => updateCurrentSlide({ chartSubtitle: val })}
-            xAxisLabel={currentSlide.xAxisLabel}
-            setXAxisLabel={(val) => updateCurrentSlide({ xAxisLabel: val })}
-            yAxisLabel={currentSlide.yAxisLabel}
-            setYAxisLabel={(val) => updateCurrentSlide({ yAxisLabel: val })}
-            y2AxisLabel={currentSlide.y2AxisLabel}
-            setY2AxisLabel={(val) => updateCurrentSlide({ y2AxisLabel: val })}
-            interactions={currentSlide.interactions}
-            setInteractions={(val) => updateCurrentSlide({ interactions: typeof val === 'function' ? val(currentSlide.interactions) : val })}
-          />
+      <div className={`grid ${isBroadcastMode ? 'grid-cols-1 max-w-5xl mx-auto' : 'grid-cols-1 lg:grid-cols-12'} gap-6 items-start transition-all duration-300`}>
+        {/* Left Column: Select Graph & Add-Interact Options (hidden in broadcast mode) */}
+        {!isBroadcastMode && (
+          <div className="lg:col-span-4 space-y-4">
+            <AddInteractPanel
+              sheetNames={sheetNames}
+              selectedSheet={currentSlideSheetName}
+              onSheetChange={handleSlideSheetChange}
+              columns={activeOrientedData.columns}
+              columnTypes={activeOrientedData.columnTypes}
+              data={activeOrientedData.data}
+              orientation={slideOrientation}
+              onOrientationChange={handleOrientationChange}
+              isFinancial={rawSheet.isFinancial || false}
+              chartType={currentSlide.chartType}
+              setChartType={(val) => updateCurrentSlide({ chartType: val })}
+              xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
+              setXField={(val) => updateCurrentSlide({ xField: val })}
+              yField={currentSlide.yField || activeOrientedData.columns[1]}
+              setYField={(val) => updateCurrentSlide({ yField: val })}
+              y2Field={currentSlide.y2Field}
+              setY2Field={(val) => updateCurrentSlide({ y2Field: val })}
+              yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
+              setYFields={(val) => updateCurrentSlide({ yFields: val })}
+              seriesConfigs={currentSlide.seriesConfigs || {}}
+              onUpdateSeriesConfig={(metric, cfg) => {
+                updateCurrentSlide({
+                  seriesConfigs: {
+                    ...(currentSlide.seriesConfigs || {}),
+                    [metric]: { ...((currentSlide.seriesConfigs || {})[metric] || {}), ...cfg },
+                  },
+                });
+              }}
+              periodFilter={currentSlide.periodFilter || { preset: 'all' }}
+              setPeriodFilter={(val) => updateCurrentSlide({ periodFilter: val })}
+              tagEstimates={currentSlide.tagEstimates !== false}
+              setTagEstimates={(val) => updateCurrentSlide({ tagEstimates: val })}
+              breakdownMode={currentSlide.breakdownMode || 'distribution'}
+              setBreakdownMode={(val) => updateCurrentSlide({ breakdownMode: val })}
+              compositionPeriod={currentSlide.compositionPeriod || ''}
+              setCompositionPeriod={(val) => updateCurrentSlide({ compositionPeriod: val })}
+              availablePeriods={(activeOrientedData.data || []).map((d) => String(d[currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])] ?? '')).filter(Boolean)}
+              openField={currentSlide.openField}
+              setOpenField={(val) => updateCurrentSlide({ openField: val })}
+              closeField={currentSlide.closeField}
+              setCloseField={(val) => updateCurrentSlide({ closeField: val })}
+              lowField={currentSlide.lowField}
+              setLowField={(val) => updateCurrentSlide({ lowField: val })}
+              highField={currentSlide.highField}
+              setHighField={(val) => updateCurrentSlide({ highField: val })}
+              chartTitle={currentSlide.chartTitle}
+              setChartTitle={(val) => updateCurrentSlide({ chartTitle: val })}
+              chartSubtitle={currentSlide.chartSubtitle}
+              setChartSubtitle={(val) => updateCurrentSlide({ chartSubtitle: val })}
+              xAxisLabel={currentSlide.xAxisLabel}
+              setXAxisLabel={(val) => updateCurrentSlide({ xAxisLabel: val })}
+              yAxisLabel={currentSlide.yAxisLabel}
+              setYAxisLabel={(val) => updateCurrentSlide({ yAxisLabel: val })}
+              y2AxisLabel={currentSlide.y2AxisLabel}
+              setY2AxisLabel={(val) => updateCurrentSlide({ y2AxisLabel: val })}
+              interactions={currentSlide.interactions}
+              setInteractions={(val) => updateCurrentSlide({ interactions: typeof val === 'function' ? val(currentSlide.interactions) : val })}
+            />
 
-          {/* Quick Page Info */}
-          <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>Viewing: <strong className="text-emerald-400">Page {activeSlideIndex + 1} of {slides.length}</strong></span>
-            <div className="flex items-center gap-1">
-              <button
-                disabled={activeSlideIndex === 0}
-                onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
-                className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                disabled={activeSlideIndex === slides.length - 1}
-                onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
-                className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+            {/* Quick Page Info */}
+            <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-xs font-mono text-slate-400 flex items-center justify-between">
+              <span>Viewing: <strong className="text-emerald-400">Page {activeSlideIndex + 1} of {slides.length}</strong></span>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={activeSlideIndex === 0}
+                  onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
+                  className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  disabled={activeSlideIndex === slides.length - 1}
+                  onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
+                  className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Right Columns (8 columns): Split into Visualizer on Top/Center and Narrative Text Box on Side/Bottom */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Right Columns: Visualizer Stage + Narrative */}
+        <div className={`${isBroadcastMode ? 'col-span-1' : 'lg:col-span-8'} space-y-5`}>
+          {/* Koyfin-style Live Financial KPI Ticker Ribbon */}
+          <FinancialKpiRibbon
+            data={activeOrientedData.data}
+            xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}
+            columns={activeOrientedData.columns}
+            columnTypes={activeOrientedData.columnTypes}
+          />
+
           {/* Visualizer: Apache ECharts Canvas Box */}
-          <div className="glass-panel-glow rounded-2xl p-5 border border-slate-800 flex flex-col space-y-3">
+          <div className="glass-panel-glow rounded-2xl p-5 border border-slate-800 flex flex-col space-y-3 relative overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
                 <h3 className="text-sm font-bold text-slate-100 font-display uppercase tracking-wider">
                   Live Visualizer — {currentSlide.chartType.toUpperCase()}
                 </h3>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
                 <span>Interactions:</span>
-                <span className="text-emerald-400 font-semibold">
+                <span className="text-blue-400 font-semibold">
                   {currentSlide.interactions.enableTooltip ? 'Tooltips ON' : 'Tooltips OFF'}
                 </span>
                 <span>&bull;</span>
@@ -495,8 +539,31 @@ export default function StorySlideStudio({
               </div>
             </div>
 
-            {/* Apache ECharts Container */}
-            <div className="w-full h-[400px] rounded-xl bg-slate-950/70 p-2">
+            {/* Apache ECharts Container with Round Analyst Avatar in Corner */}
+            <div className={`w-full ${isBroadcastMode ? 'h-[480px]' : 'h-[400px]'} rounded-xl bg-slate-950/70 p-2 relative overflow-hidden transition-all duration-300`}>
+              {/* Round Analyst Avatar Watermark in Top-Right Corner */}
+              <div className="absolute top-3 right-3 z-20 flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-xl px-2.5 py-1.5 rounded-full border border-blue-500/40 shadow-[0_0_20px_rgba(19,100,226,0.35)] hover:border-blue-400 hover:shadow-[0_0_35px_rgba(19,100,226,0.55)] transition duration-300 group select-none">
+                <div className="relative">
+                  <img
+                    src="/analyst_avatar.jpg"
+                    alt="Dear Analyst"
+                    className="w-11 h-11 rounded-full object-cover ring-2 ring-blue-400 avatar-glow group-hover:scale-105 transition duration-300"
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-blue-500 border-2 border-slate-950 rounded-full animate-pulse" />
+                </div>
+                <div className="pr-1.5 hidden sm:block">
+                  <div className="text-[11px] font-bold text-white flex items-center gap-1 font-mono">
+                    <span>Dear Analyst</span>
+                    <span className="text-[8px] px-1.5 py-0.2 rounded-full bg-blue-950 text-blue-300 border border-blue-800 uppercase font-semibold">
+                      PRO
+                    </span>
+                  </div>
+                  <div className="text-[9px] text-blue-400/90 font-mono">
+                    Deep Dive Research
+                  </div>
+                </div>
+              </div>
+
               <EChartsRenderer
                 chartType={currentSlide.chartType}
                 data={activeOrientedData.data}
@@ -508,6 +575,7 @@ export default function StorySlideStudio({
                 yFields={currentSlide.yFields || [currentSlide.yField, currentSlide.y2Field].filter(Boolean)}
                 seriesConfigs={currentSlide.seriesConfigs || {}}
                 periodFilter={currentSlide.periodFilter || { preset: 'all' }}
+                tagEstimates={currentSlide.tagEstimates !== false}
                 breakdownMode={currentSlide.breakdownMode || 'distribution'}
                 compositionPeriod={currentSlide.compositionPeriod || ''}
                 openField={currentSlide.openField}
@@ -524,10 +592,10 @@ export default function StorySlideStudio({
             </div>
           </div>
 
-          {/* Narrative / Commentary Text Box ("in side there will be a text box we can add any text") */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 border-l-4 border-l-emerald-400">
+          {/* Narrative / Commentary Text Box with Quick Insert Chips */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 border-l-4 border-l-blue-500">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold text-emerald-300">
+              <div className="flex items-center gap-2 text-sm font-semibold text-blue-300">
                 <FileText className="w-4 h-4" />
                 <span>Analyst Story Narrative (Page {activeSlideIndex + 1})</span>
               </div>
@@ -536,25 +604,48 @@ export default function StorySlideStudio({
               </span>
             </div>
 
+            {/* Quick Financial Insight Chips for YouTubers */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] font-mono text-slate-400">Quick Insert:</span>
+              {[
+                { label: '+ Revenue Driver', text: '\n- **Revenue Catalyst:** Strong quarterly expansion driven by volume growth and core customer demand.' },
+                { label: '+ Margin Trajectory', text: '\n- **Operating Margin:** Operating leverage expansion with efficiency gains and input cost stabilization.' },
+                { label: '+ Balance Sheet', text: '\n- **Balance Sheet & Cash:** Healthy operating cash generation and disciplined capital allocation.' },
+                { label: '+ Analyst Takeaway', text: '\n- **Analyst Conclusion:** Strong fundamental positioning with upside potential across key verticals.' },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={() => {
+                    const existing = currentSlide.narrativeText || '';
+                    updateCurrentSlide({ narrativeText: existing + chip.text });
+                  }}
+                  className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-900 border border-slate-750 hover:border-blue-500/60 text-slate-300 hover:text-blue-300 transition"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+
             <textarea
               rows={4}
               value={currentSlide.narrativeText}
               onChange={(e) => updateCurrentSlide({ narrativeText: e.target.value })}
               placeholder="Add your narrative, commentary, key findings, takeaways, or bullet points for this specific page..."
-              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-3.5 text-xs sm:text-sm font-sans text-slate-200 leading-relaxed focus:outline-none focus:border-emerald-400 resize-y"
+              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-3.5 text-xs sm:text-sm font-sans text-slate-200 leading-relaxed focus:outline-none focus:border-blue-400 resize-y"
             />
 
-            {/* Save & Next Page Button ("then save and next page in next page also same things") */}
+            {/* Save & Next Page Button */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
                 <span>All changes auto-saved to current page state</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleSaveAndNextPage}
-                  className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:scale-[1.02] shadow-md shadow-emerald-500/20 transition flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#1364e2] to-[#9852d9] hover:scale-[1.02] shadow-md shadow-blue-500/25 transition flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save & Next Page</span>
