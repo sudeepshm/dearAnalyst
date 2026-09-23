@@ -80,7 +80,6 @@ export default function StorySlideStudio({
         seriesConfigs: {},
         periodFilter: { preset: 'all', customStart: '', customEnd: '' },
         tagEstimates: true,
-        periodFormat: 'quarter_fy',
         breakdownMode: 'distribution',
         compositionPeriod: '',
         chartTitle,
@@ -459,8 +458,6 @@ export default function StorySlideStudio({
               setPeriodFilter={(val) => updateCurrentSlide({ periodFilter: val })}
               tagEstimates={currentSlide.tagEstimates !== false}
               setTagEstimates={(val) => updateCurrentSlide({ tagEstimates: val })}
-              periodFormat={currentSlide.periodFormat || 'quarter_fy'}
-              setPeriodFormat={(val) => updateCurrentSlide({ periodFormat: val })}
               breakdownMode={currentSlide.breakdownMode || 'distribution'}
               setBreakdownMode={(val) => updateCurrentSlide({ breakdownMode: val })}
               compositionPeriod={currentSlide.compositionPeriod || ''}
@@ -579,7 +576,6 @@ export default function StorySlideStudio({
                 seriesConfigs={currentSlide.seriesConfigs || {}}
                 periodFilter={currentSlide.periodFilter || { preset: 'all' }}
                 tagEstimates={currentSlide.tagEstimates !== false}
-                periodFormat={currentSlide.periodFormat || 'quarter_fy'}
                 breakdownMode={currentSlide.breakdownMode || 'distribution'}
                 compositionPeriod={currentSlide.compositionPeriod || ''}
                 openField={currentSlide.openField}

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { formatPeriodLabel } from '@/utils/periodHelpers';
 import { TrendingUp, TrendingDown, DollarSign, Percent, Activity, BarChart3 } from 'lucide-react';
 
 export default function FinancialKpiRibbon({
@@ -83,8 +82,7 @@ export default function FinancialKpiRibbon({
     // Extract values & compute growth
     const lastRow = data[data.length - 1] || {};
     const prevRow = data[data.length - 2] || {};
-    const rawPeriod = String(lastRow[xField] ?? 'Latest');
-    const periodLabel = formatPeriodLabel(rawPeriod, true);
+    const periodLabel = String(lastRow[xField] ?? 'Latest');
 
     return matched.map((item) => {
       const currentVal = Number(lastRow[item.key]);

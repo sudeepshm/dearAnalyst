@@ -32,7 +32,6 @@ export default function EChartsRenderer({
   seriesConfigs = {},
   periodFilter = { preset: 'all' },
   tagEstimates = true,
-  periodFormat = 'quarter_fy',
   breakdownMode = 'distribution',
   compositionPeriod = '',
   openField = 'Open',
@@ -98,10 +97,10 @@ export default function EChartsRenderer({
       effectiveYFields = [fallbackMetric];
     }
 
-    // 3. Extract X-Axis Data Points (with Quarter formatting and estimate tagging)
+    // 3. Extract X-Axis Data Points (with estimate tagging if enabled)
     const xData = filteredData.map((d) => {
       const raw = String(d[xField] ?? '');
-      return formatPeriodLabel(raw, tagEstimates !== false, periodFormat);
+      return tagEstimates !== false ? formatPeriodLabel(raw, true) : raw;
     });
 
     // Helper to extract series values for any given metric name
@@ -818,7 +817,6 @@ export default function EChartsRenderer({
     yFields,
     periodFilter,
     tagEstimates,
-    periodFormat,
     breakdownMode,
     compositionPeriod,
     openField,

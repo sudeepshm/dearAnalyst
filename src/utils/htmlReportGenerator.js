@@ -293,78 +293,6 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
         }
       }
 
-      function formatPeriodToQuarterClient(val, format = 'quarter_fy', tagEstimates = true) {
-        if (!val) return '';
-        const s = String(val).trim();
-        const monthNames = {
-          jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
-          jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
-        };
-
-        let isEst = /\b(est|proj|forecast)\b|\((e|p|f|est|proj)\)/i.test(s) || /[eEpP]$/.test(s);
-        let monthIdx = null;
-        let year = null;
-
-        if (/^Q[1-4]/i.test(s)) {
-          return s;
-        }
-
-        const mMatch = s.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[-'\s]?(\d{2,4})([eEpP])?\b/i);
-        if (mMatch) {
-          monthIdx = monthNames[mMatch[1].toLowerCase().slice(0, 3)];
-          let yr = parseInt(mMatch[2], 10);
-          if (yr < 100) yr = yr < 70 ? 2000 + yr : 1900 + yr;
-          year = yr;
-          if (mMatch[3]) isEst = true;
-        } else {
-          const dMatch = s.match(/\b(\d{4})-(\d{1,2})-(\d{1,2})\b/) || s.match(/\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b/);
-          if (dMatch) {
-            if (dMatch[1].length === 4) {
-              year = parseInt(dMatch[1], 10);
-              monthIdx = parseInt(dMatch[2], 10) - 1;
-            } else {
-              year = parseInt(dMatch[3], 10);
-              monthIdx = parseInt(dMatch[2], 10) - 1;
-            }
-          }
-        }
-
-        if (monthIdx === null || year === null || isNaN(monthIdx) || isNaN(year)) {
-          return s;
-        }
-
-        if (year > 2024) isEst = true;
-
-        let qNum, fyYear;
-        if (monthIdx >= 3) {
-          qNum = Math.floor((monthIdx - 3) / 3) + 1;
-          fyYear = year + 1;
-        } else {
-          qNum = 4;
-          fyYear = year;
-        }
-
-        const yr2 = String(fyYear).slice(-2);
-        let baseLabel = '';
-
-        if (format === 'quarter_short') baseLabel = 'Q' + qNum + '\'' + yr2;
-        else if (format === 'quarter_only') baseLabel = 'Q' + qNum;
-        else if (format === 'fy_only') baseLabel = 'FY' + yr2;
-        else if (format === 'quarter_cy') baseLabel = 'Q' + (Math.floor(monthIdx / 3) + 1) + ' ' + year;
-        else if (format === 'month_year') {
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          baseLabel = months[monthIdx] + '-' + yr2;
-        } else {
-          baseLabel = 'Q' + qNum + ' FY' + yr2;
-        }
-
-        if (tagEstimates && isEst && !baseLabel.includes('(E)')) {
-          baseLabel += ' (E)';
-        }
-
-        return baseLabel;
-      }
-
       // 2. Harmonized Multi-Metric Array
       const effectiveYFields = Array.isArray(slide.yFields) && slide.yFields.length > 0
         ? slide.yFields
@@ -372,7 +300,13 @@ export function generateStandaloneHtml({ title, slides, globalSettings = {} }) {
 
       const xData = data.map(d => {
         const raw = String(d[xField] || '');
-        return formatPeriodToQuarterClient(raw, slide.periodFormat || 'quarter_fy', slide.tagEstimates !== false);
+        if (slide.tagEstimates !== false) {
+          const yrMatch = raw.match(/\b(19\d{2}|20\d{2})\b/) || raw.match(/(?:[A-Za-z]{3}|FY)[-'\s]?(\d{2})\b/i);
+          const yr = yrMatch ? (yrMatch[1].length === 2 ? (parseInt(yrMatch[1], 10) < 70 ? 2000 + parseInt(yrMatch[1], 10) : 1900 + parseInt(yrMatch[1], 10)) : parseInt(yrMatch[1], 10)) : null;
+          const isEst = /\b(est|proj|forecast)\b|\((e|p|f|est|proj)\)/i.test(raw) || (yr !== null && yr > 2024);
+          if (isEst && !/\((e|est|p|proj)\)/i.test(raw)) return raw + ' (E)';
+        }
+        return raw;
       });
       
       let tooltip = { trigger: 'item' };

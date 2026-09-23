@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { analyzePeriodsSummary, formatPeriodLabel } from '../utils/periodHelpers';
+import { analyzePeriodsSummary } from '../utils/periodHelpers';
 import { 
   BarChart3, 
   CandlestickChart, 
@@ -68,8 +68,6 @@ export default function AddInteractPanel({
   setPeriodFilter,
   tagEstimates = true,
   setTagEstimates,
-  periodFormat = 'quarter_fy',
-  setPeriodFormat,
   breakdownMode = 'distribution',
   setBreakdownMode,
   compositionPeriod = '',
@@ -442,7 +440,7 @@ export default function AddInteractPanel({
                           <span>Target Quarter for Breakdown:</span>
                         </span>
                         <span className="text-[10px] font-mono text-cyan-300 font-bold">
-                          {formatPeriodLabel(compositionPeriod || (availablePeriods.length > 0 ? availablePeriods[availablePeriods.length - 1] : ''), false, periodFormat)}
+                          {compositionPeriod || (availablePeriods.length > 0 ? availablePeriods[availablePeriods.length - 1] : '')}
                         </span>
                       </div>
 
@@ -450,7 +448,6 @@ export default function AddInteractPanel({
                         {availablePeriods.map((p) => {
                           const target = compositionPeriod || availablePeriods[availablePeriods.length - 1];
                           const isSelected = target === p;
-                          const displayLabel = formatPeriodLabel(p, false, periodFormat);
                           return (
                             <button
                               key={p}
@@ -462,7 +459,7 @@ export default function AddInteractPanel({
                                   : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                               }`}
                             >
-                              {displayLabel}
+                              {p}
                             </button>
                           );
                         })}
@@ -635,52 +632,6 @@ export default function AddInteractPanel({
                       </div>
                     </div>
                   )}
-
-                  {/* Quarter / Timeline Format Selector */}
-                  <div className="pt-2.5 border-t border-slate-800/80 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-mono text-slate-300 font-semibold flex items-center gap-1.5">
-                        <Sparkles className="w-3 h-3 text-blue-400" />
-                        <span>Quarter / Timeline Format:</span>
-                      </span>
-                      <span className="text-[10px] text-blue-400 font-medium font-mono">
-                        {periodFormat === 'quarter_fy' && 'Quarter (FY)'}
-                        {periodFormat === 'quarter_short' && 'Quarter (Short)'}
-                        {periodFormat === 'quarter_only' && 'Quarter Only'}
-                        {periodFormat === 'fy_only' && 'Fiscal Year'}
-                        {periodFormat === 'quarter_cy' && 'Calendar Quarter'}
-                        {periodFormat === 'month_year' && 'Month-Year'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-1 text-[10px] font-mono">
-                      {[
-                        { id: 'quarter_fy', label: 'Q4 FY24 (Quarter)', title: 'e.g. Q4 FY17, Q1 FY24' },
-                        { id: 'quarter_short', label: "Q4'24 (Short)", title: 'e.g. Q4\'17, Q1\'24' },
-                        { id: 'fy_only', label: 'FY24 (Annual)', title: 'e.g. FY17, FY24' },
-                        { id: 'quarter_only', label: 'Q4 (Quarter #)', title: 'e.g. Q1, Q2, Q3, Q4' },
-                        { id: 'quarter_cy', label: 'Q1 2024 (CY)', title: 'e.g. Q1 2017, Q2 2024' },
-                        { id: 'month_year', label: 'Mar-24 (Month)', title: 'e.g. Mar-17, Jun-24' },
-                      ].map((fmt) => {
-                        const isActive = (periodFormat || 'quarter_fy') === fmt.id;
-                        return (
-                          <button
-                            key={fmt.id}
-                            type="button"
-                            onClick={() => setPeriodFormat && setPeriodFormat(fmt.id)}
-                            title={fmt.title}
-                            className={`py-1 px-1 rounded-md border transition text-center truncate ${
-                              isActive
-                                ? 'bg-blue-950/80 border-blue-500 text-blue-300 font-bold shadow-sm'
-                                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                            }`}
-                          >
-                            {fmt.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
 
                 {/* 2. Timeline X-Axis Confirmation Banner */}
@@ -689,9 +640,6 @@ export default function AddInteractPanel({
                     <Calendar className="w-3.5 h-3.5 text-blue-400" />
                     <span className="text-slate-400">Timeline (X-Axis):</span>
                     <span className="text-slate-100 font-semibold">{xField || 'Period'}</span>
-                    <span className="text-[10px] text-blue-400 font-semibold bg-blue-950/80 px-2 py-0.5 rounded border border-blue-800">
-                      {periodFormat === 'quarter_fy' ? 'Quarter (FY)' : periodFormat.toUpperCase()}
-                    </span>
                   </div>
                   {periodSummary.hasEstimates ? (
                     <div className="flex items-center gap-1.5">
