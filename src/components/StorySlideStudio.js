@@ -435,6 +435,8 @@ export default function StorySlideStudio({
               orientation={slideOrientation}
               onOrientationChange={handleOrientationChange}
               isFinancial={rawSheet.isFinancial || false}
+              rawSheet={rawSheet}
+              allSheets={sheets}
               chartType={currentSlide.chartType}
               setChartType={(val) => updateCurrentSlide({ chartType: val })}
               xField={currentSlide.xField || (slideOrientation === 'transposed' ? 'Period' : activeOrientedData.columns[0])}

@@ -24,10 +24,12 @@ import {
   Search,
   Check,
   Calendar,
-  Filter
+  Filter,
+  Table
 } from 'lucide-react';
 import VisualChartCatalogue from '@/components/VisualChartCatalogue';
 import FinancialTablePicker from '@/components/FinancialTablePicker';
+import SheetColumnPickerModal from '@/components/SheetColumnPickerModal';
 
 const FINANCIAL_PALETTE = [
   '#1364e2', // Flourish Electric Blue (Primary / Sales)
@@ -93,11 +95,20 @@ export default function AddInteractPanel({
   setY2AxisLabel,
   interactions,
   setInteractions,
+  rawSheet = null,
+  allSheets = {},
 }) {
   const [activeTab, setActiveTab] = useState('fields'); // 'fields' | 'interact'
   const [isCatalogueOpen, setIsCatalogueOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSheetPickerOpen, setIsSheetPickerOpen] = useState(false);
+  const [sheetPickerTarget, setSheetPickerTarget] = useState('xField');
+
+  const openSheetPickerFor = (fieldKey) => {
+    setSheetPickerTarget(fieldKey);
+    setIsSheetPickerOpen(true);
+  };
 
   // Period analysis: count historical actuals vs forward estimates
   const periodSummary = useMemo(() => {
@@ -138,6 +149,42 @@ export default function AddInteractPanel({
     } else {
       handleAddMetric(metric);
     }
+  };
+
+  const handleAssignField = (fieldKey, columnName) => {
+    if (fieldKey === 'xField') {
+      if (setXField) setXField(columnName);
+    } else if (fieldKey === 'openField') {
+      if (setOpenField) setOpenField(columnName);
+    } else if (fieldKey === 'closeField') {
+      if (setCloseField) setCloseField(columnName);
+    } else if (fieldKey === 'lowField') {
+      if (setLowField) setLowField(columnName);
+    } else if (fieldKey === 'highField') {
+      if (setHighField) setHighField(columnName);
+    } else if (fieldKey === 'yField') {
+      if (setYField) setYField(columnName);
+      if (setYFields) setYFields([columnName]);
+    } else if (fieldKey === 'y2Field') {
+      if (setY2Field) setY2Field(columnName);
+    } else if (fieldKey === 'yFields') {
+      handleToggleMetric(columnName);
+    } else if (fieldKey === 'compositionPeriod') {
+      if (setCompositionPeriod) setCompositionPeriod(columnName);
+    }
+  };
+
+  const handleSelectAllNumericMetrics = () => {
+    const numCols = columns.filter((c) => columnTypes[c] === 'number' && c !== xField && !c.startsWith('__EMPTY'));
+    if (setYFields) setYFields(numCols);
+    if (setYField && numCols[0]) setYField(numCols[0]);
+    if (setY2Field) setY2Field(numCols[1] || '');
+  };
+
+  const handleClearAllMetrics = () => {
+    if (setYFields) setYFields([]);
+    if (setYField) setYField('');
+    if (setY2Field) setY2Field('');
   };
 
   const periodPresets = [
@@ -287,66 +334,208 @@ export default function AddInteractPanel({
 
           {/* Conditional Field Mapping based on Graph Type */}
           <div className="pt-2 border-t border-slate-800/80 space-y-3">
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400">
-              2. Map Data Fields
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400">
+                2. Map Data Fields
+              </label>
+              <button
+                type="button"
+                onClick={() => openSheetPickerFor(chartType === 'candlestick' ? 'openField' : chartType === 'scatter' ? 'xField' : 'yFields')}
+                className="text-[11px] font-mono text-emerald-300 hover:text-emerald-200 flex items-center gap-1.5 bg-emerald-950/70 hover:bg-emerald-900 border border-emerald-500/40 hover:border-emerald-400 px-2.5 py-1 rounded-lg transition shadow-sm font-semibold"
+                title="Open interactive spreadsheet grid to select columns directly"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Pick from XL-Sheet</span>
+              </button>
+            </div>
+
+            {/* Interactive XL Sheet Column Picker Hero Banner */}
+            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-950/60 via-slate-900 to-emerald-950/40 border border-blue-500/30 flex items-center justify-between shadow-md">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex-shrink-0">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                    <span>Spreadsheet Column Picker</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 border border-blue-800 font-semibold uppercase">
+                      Sheet View
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    Click any column in your spreadsheet to assign to graph fields
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => openSheetPickerFor(chartType === 'candlestick' ? 'openField' : chartType === 'scatter' ? 'xField' : 'yFields')}
+                className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition shadow-md shadow-blue-500/25 flex-shrink-0"
+              >
+                <Table className="w-3.5 h-3.5" />
+                <span>Open Sheet</span>
+              </button>
+            </div>
 
             {chartType === 'candlestick' ? (
               /* Candlestick requires Date, Open, High, Low, Close */
               <div className="space-y-2.5">
                 <div>
-                  <span className="text-xs font-mono text-slate-400">Timeline / Date Field:</span>
-                  <select
-                    value={xField}
-                    onChange={(e) => setXField(e.target.value)}
-                    className="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
-                  >
-                    {columns.map((c) => (
-                      <option key={c} value={c}>{c} ({columnTypes[c] || 'type'})</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-slate-400">Timeline / Date Field:</span>
+                    <button
+                      type="button"
+                      onClick={() => openSheetPickerFor('xField')}
+                      className="text-[10px] font-mono text-blue-400 hover:text-blue-300 flex items-center gap-1 transition"
+                    >
+                      <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+                      <span>Select from Sheet</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <select
+                      value={xField}
+                      onChange={(e) => setXField(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
+                    >
+                      {columns.map((c) => (
+                        <option key={c} value={c}>{c} ({columnTypes[c] || 'type'})</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => openSheetPickerFor('xField')}
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                      title="Open sheet to select Timeline column"
+                    >
+                      <Table className="w-4 h-4 text-blue-400" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[11px] font-mono text-slate-400">Open Price:</span>
-                    <select
-                      value={openField}
-                      onChange={(e) => setOpenField(e.target.value)}
-                      className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
-                    >
-                      {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-slate-400">Open Price:</span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('openField')}
+                        className="text-[9px] font-mono text-emerald-400 hover:underline flex items-center gap-0.5"
+                      >
+                        <FileSpreadsheet className="w-2.5 h-2.5" />
+                        <span>Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <select
+                        value={openField}
+                        onChange={(e) => setOpenField(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
+                      >
+                        {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('openField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select Open Price column"
+                      >
+                        <Table className="w-3.5 h-3.5 text-emerald-400" />
+                      </button>
+                    </div>
                   </div>
+
                   <div>
-                    <span className="text-[11px] font-mono text-slate-400">Close Price:</span>
-                    <select
-                      value={closeField}
-                      onChange={(e) => setCloseField(e.target.value)}
-                      className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
-                    >
-                      {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-slate-400">Close Price:</span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('closeField')}
+                        className="text-[9px] font-mono text-rose-400 hover:underline flex items-center gap-0.5"
+                      >
+                        <FileSpreadsheet className="w-2.5 h-2.5" />
+                        <span>Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <select
+                        value={closeField}
+                        onChange={(e) => setCloseField(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
+                      >
+                        {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('closeField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select Close Price column"
+                      >
+                        <Table className="w-3.5 h-3.5 text-rose-400" />
+                      </button>
+                    </div>
                   </div>
+
                   <div>
-                    <span className="text-[11px] font-mono text-slate-400">Lowest (Low):</span>
-                    <select
-                      value={lowField}
-                      onChange={(e) => setLowField(e.target.value)}
-                      className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
-                    >
-                      {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-slate-400">Lowest (Low):</span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('lowField')}
+                        className="text-[9px] font-mono text-amber-400 hover:underline flex items-center gap-0.5"
+                      >
+                        <FileSpreadsheet className="w-2.5 h-2.5" />
+                        <span>Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <select
+                        value={lowField}
+                        onChange={(e) => setLowField(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
+                      >
+                        {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('lowField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select Low Price column"
+                      >
+                        <Table className="w-3.5 h-3.5 text-amber-400" />
+                      </button>
+                    </div>
                   </div>
+
                   <div>
-                    <span className="text-[11px] font-mono text-slate-400">Highest (High):</span>
-                    <select
-                      value={highField}
-                      onChange={(e) => setHighField(e.target.value)}
-                      className="w-full mt-0.5 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400"
-                    >
-                      {columns.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-slate-400">Highest (High):</span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('highField')}
+                        className="text-[9px] font-mono text-cyan-400 hover:underline flex items-center gap-0.5"
+                      >
+                        <FileSpreadsheet className="w-2.5 h-2.5" />
+                        <span>Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <select
+                        value={highField}
+                        onChange={(e) => setHighField(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-400 font-mono"
+                      >
+                        {columns.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('highField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select High Price column"
+                      >
+                        <Table className="w-3.5 h-3.5 text-cyan-400" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -355,37 +544,77 @@ export default function AddInteractPanel({
               <div className="space-y-3.5">
                 <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
                   <div>
-                    <span className="text-xs font-mono text-slate-300 font-semibold block mb-1">
-                      X-Axis (Independent Variable):
-                    </span>
-                    <select
-                      value={xField}
-                      onChange={(e) => setXField(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
-                    >
-                      {columns.map((c) => (
-                        <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono text-slate-300 font-semibold">
+                        X-Axis (Independent Variable):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('xField')}
+                        className="text-[10px] font-mono text-blue-400 hover:underline flex items-center gap-1"
+                      >
+                        <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+                        <span>Pick from Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={xField}
+                        onChange={(e) => setXField(e.target.value)}
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
+                      >
+                        {columns.map((c) => (
+                          <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('xField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select X-Axis column"
+                      >
+                        <Table className="w-4 h-4 text-blue-400" />
+                      </button>
+                    </div>
                   </div>
 
                   <div>
-                    <span className="text-xs font-mono text-slate-300 font-semibold block mb-1">
-                      Y-Axis (Dependent Variable):
-                    </span>
-                    <select
-                      value={effectiveYFields[0] || yField}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (setYFields) setYFields([val]);
-                        if (setYField) setYField(val);
-                      }}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
-                    >
-                      {columns.filter((c) => c !== xField).map((c) => (
-                        <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-mono text-slate-300 font-semibold">
+                        Y-Axis (Dependent Variable):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('yField')}
+                        className="text-[10px] font-mono text-emerald-400 hover:underline flex items-center gap-1"
+                      >
+                        <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+                        <span>Pick from Sheet</span>
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <select
+                        value={effectiveYFields[0] || yField}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (setYFields) setYFields([val]);
+                          if (setYField) setYField(val);
+                        }}
+                        className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-mono focus:border-emerald-400"
+                      >
+                        {columns.filter((c) => c !== xField).map((c) => (
+                          <option key={c} value={c}>{c} ({columnTypes[c] || 'metric'})</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => openSheetPickerFor('yField')}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 hover:text-white transition flex-shrink-0"
+                        title="Open sheet to select Y-Axis column"
+                      >
+                        <Table className="w-4 h-4 text-emerald-400" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -487,6 +716,7 @@ export default function AddInteractPanel({
                         recentPeriods={availablePeriods}
                         chartType="pie"
                         isFinancial={isFinancial || orientation === 'transposed'}
+                        onOpenSheetPicker={() => openSheetPickerFor('yFields')}
                       />
                     </div>
                   </div>
@@ -515,8 +745,8 @@ export default function AddInteractPanel({
                               onClick={() => handlePeriodPreset(preset.id)}
                               className={`py-1.5 px-1 rounded-lg border transition text-center ${
                                 isActive
-                                  ? 'bg-cyan-950/70 border-cyan-500/60 text-cyan-300 font-bold shadow-sm'
-                                  : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                                ? 'bg-cyan-950/70 border-cyan-500/60 text-cyan-300 font-bold shadow-sm'
+                                : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
                               }`}
                             >
                               {preset.label}
@@ -528,9 +758,19 @@ export default function AddInteractPanel({
 
                     {/* Single Metric Selection */}
                     <div className="space-y-1.5">
-                      <label className="text-xs font-mono text-slate-300 font-semibold">
-                        Select 1 Metric to Distribute across Quarters:
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-mono text-slate-300 font-semibold">
+                          Select 1 Metric to Distribute across Quarters:
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => openSheetPickerFor('yField')}
+                          className="text-[10px] font-mono text-emerald-400 hover:underline flex items-center gap-1"
+                        >
+                          <FileSpreadsheet className="w-3 h-3" />
+                          <span>Pick from Sheet</span>
+                        </button>
+                      </div>
                       <FinancialTablePicker
                         metrics={columns}
                         metricTypes={columnTypes}
@@ -546,6 +786,7 @@ export default function AddInteractPanel({
                         recentPeriods={availablePeriods}
                         chartType="pie"
                         isFinancial={isFinancial || orientation === 'transposed'}
+                        onOpenSheetPicker={() => openSheetPickerFor('yField')}
                       />
                     </div>
                   </div>
@@ -641,20 +882,31 @@ export default function AddInteractPanel({
                     <span className="text-slate-400">Timeline (X-Axis):</span>
                     <span className="text-slate-100 font-semibold">{xField || 'Period'}</span>
                   </div>
-                  {periodSummary.hasEstimates ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-slate-300 font-medium bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                        {periodSummary.historicalCount} Historical
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => openSheetPickerFor('xField')}
+                      className="px-2 py-0.5 rounded bg-blue-950/80 hover:bg-blue-900 border border-blue-700/60 hover:border-blue-400 text-blue-300 font-mono text-[10px] font-semibold flex items-center gap-1 transition"
+                      title="Select Timeline / X-Axis column from parsed spreadsheet"
+                    >
+                      <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+                      <span>Select X from Sheet</span>
+                    </button>
+                    {periodSummary.hasEstimates ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-300 font-medium bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                          {periodSummary.historicalCount} Historical
+                        </span>
+                        <span className="text-[10px] text-cyan-300 font-semibold bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-500/40">
+                          {periodSummary.estimateCount} Estimates (E)
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-blue-400/90 font-medium hidden sm:inline">
+                        {availablePeriods.length} Periods Available
                       </span>
-                      <span className="text-[10px] text-cyan-300 font-semibold bg-cyan-950/70 px-2 py-0.5 rounded border border-cyan-500/40">
-                        {periodSummary.estimateCount} Estimates (E)
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-[10px] text-blue-400/90 font-medium">
-                      {availablePeriods.length} Periods Available
-                    </span>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {/* 3. Active Chart Series Pills */}
@@ -664,19 +916,30 @@ export default function AddInteractPanel({
                       <Layers className="w-3.5 h-3.5 text-blue-400" />
                       <span>Active Chart Series ({effectiveYFields.length}):</span>
                     </span>
-                    {effectiveYFields.length > 0 && (
+                    <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (setYFields) setYFields([]);
-                          if (setYField) setYField('');
-                          if (setY2Field) setY2Field('');
-                        }}
-                        className="text-[10px] font-mono text-slate-500 hover:text-red-400 transition"
+                        onClick={() => openSheetPickerFor('yFields')}
+                        className="px-2 py-0.5 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 hover:border-emerald-400 text-emerald-300 font-mono text-[10px] font-semibold flex items-center gap-1 transition shadow-sm"
+                        title="Open parsed spreadsheet and click columns to add/remove series"
                       >
-                        Clear All
+                        <FileSpreadsheet className="w-3 h-3 text-emerald-400" />
+                        <span>Pick Series from Sheet</span>
                       </button>
-                    )}
+                      {effectiveYFields.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (setYFields) setYFields([]);
+                            if (setYField) setYField('');
+                            if (setY2Field) setY2Field('');
+                          }}
+                          className="text-[10px] font-mono text-slate-500 hover:text-red-400 transition"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2 rounded-xl bg-slate-950/80 border border-slate-800">
@@ -742,6 +1005,7 @@ export default function AddInteractPanel({
                     recentPeriods={availablePeriods}
                     chartType={chartType}
                     isFinancial={isFinancial || orientation === 'transposed'}
+                    onOpenSheetPicker={() => openSheetPickerFor('yFields')}
                   />
                 </div>
 
@@ -975,6 +1239,38 @@ export default function AddInteractPanel({
           </div>
         </div>
       )}
+
+      {/* Interactive Parsed XL-Sheet Column Picker Modal */}
+      <SheetColumnPickerModal
+        isOpen={isSheetPickerOpen}
+        onClose={() => setIsSheetPickerOpen(false)}
+        data={data}
+        columns={columns}
+        columnTypes={columnTypes}
+        sheetNames={sheetNames}
+        activeSheetName={selectedSheet}
+        onSheetChange={onSheetChange}
+        chartType={chartType}
+        initialTargetField={sheetPickerTarget}
+        fieldValues={{
+          xField,
+          yField,
+          y2Field,
+          yFields: effectiveYFields,
+          openField,
+          closeField,
+          lowField,
+          highField,
+          compositionPeriod,
+        }}
+        onAssignField={handleAssignField}
+        onToggleMetric={handleToggleMetric}
+        onSelectAllNumericMetrics={handleSelectAllNumericMetrics}
+        onClearAllMetrics={handleClearAllMetrics}
+        rawSheet={rawSheet}
+        orientation={orientation}
+        onOrientationChange={onOrientationChange}
+      />
     </div>
   );
 }

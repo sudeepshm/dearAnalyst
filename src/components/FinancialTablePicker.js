@@ -13,7 +13,9 @@ import {
   BarChart2, 
   ChevronDown,
   ArrowUpDown,
-  RotateCcw
+  RotateCcw,
+  FileSpreadsheet,
+  Table
 } from 'lucide-react';
 
 const FINANCIAL_PALETTE = [
@@ -93,6 +95,7 @@ export default function FinancialTablePicker({
   recentPeriods = [], // ['Dec-23', 'Mar-24', 'Jun-24']
   chartType = 'combo',
   isFinancial = true,
+  onOpenSheetPicker = null,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSelectedOnly, setShowSelectedOnly] = useState(false);
@@ -250,6 +253,18 @@ export default function FinancialTablePicker({
           <Filter className="w-3 h-3" />
           <span>Selected ({selectedMetrics.length})</span>
         </button>
+
+        {onOpenSheetPicker && (
+          <button
+            type="button"
+            onClick={onOpenSheetPicker}
+            className="px-2.5 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 hover:border-emerald-400 text-emerald-300 hover:text-white font-mono text-[11px] font-semibold flex items-center gap-1 transition shadow-sm flex-shrink-0"
+            title="Open parsed Excel sheet grid to select columns directly"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">Sheet Grid</span>
+          </button>
+        )}
       </div>
 
       {/* 3. Interactive Spreadsheet Statement Table */}
