@@ -575,54 +575,94 @@ export default function SheetColumnPickerModal({
         </div>
 
         {/* 5. Footer: Column Inspector & Confirmation Actions */}
-        <div className="px-5 py-3 bg-slate-900/95 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          {/* Active Field Mapping Status */}
-          <div className="flex items-center gap-3">
-            <div className="text-slate-400 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Mapped:</span>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              {fVals.xField && (
-                <span className="px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-300 font-semibold text-[11px]">
-                  X: {fVals.xField}
+        <div className="border-t border-slate-800 bg-slate-900/95 text-xs font-mono">
+          {/* Column Stats Inspector (shown after clicking a column) */}
+          {selectedColSummary && (
+            <div className="px-5 py-2.5 border-b border-slate-800/60 flex flex-wrap items-center gap-4 bg-slate-950/60">
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <Eye className="w-3.5 h-3.5 text-blue-400" />
+                <span className="font-bold text-white">{selectedColSummary.colName}</span>
+                <span className={`px-1.5 py-0.2 rounded text-[9px] font-semibold uppercase ${
+                  selectedColSummary.type === 'number'
+                    ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                    : selectedColSummary.type === 'date'
+                    ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                    : 'bg-slate-800 text-slate-400 border border-slate-700'
+                }`}>
+                  {selectedColSummary.type}
                 </span>
-              )}
-              {chartType === 'candlestick' ? (
-                <>
-                  {fVals.openField && (
-                    <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-[11px]">
-                      Open: {fVals.openField}
-                    </span>
-                  )}
-                  {fVals.closeField && (
-                    <span className="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-800 text-rose-300 text-[11px]">
-                      Close: {fVals.closeField}
-                    </span>
-                  )}
-                </>
-              ) : (
-                (fVals.yFields || []).length > 0 && (
-                  <span className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 text-cyan-300 font-semibold text-[11px]">
-                    Series: {(fVals.yFields || []).slice(0, 3).join(', ')}
-                    {(fVals.yFields || []).length > 3 && ` +${(fVals.yFields || []).length - 3} more`}
-                  </span>
-                )
-              )}
+              </div>
+              <div className="flex items-center gap-3 text-slate-400">
+                <span><strong className="text-slate-300">{selectedColSummary.count}</strong> rows</span>
+                {selectedColSummary.min !== null && (
+                  <>
+                    <span className="text-slate-700">|</span>
+                    <span>Min: <strong className="text-emerald-400">{selectedColSummary.min}</strong></span>
+                    <span>Max: <strong className="text-cyan-400">{selectedColSummary.max}</strong></span>
+                  </>
+                )}
+                {selectedColSummary.sample && (
+                  <>
+                    <span className="text-slate-700">|</span>
+                    <span className="text-slate-500">Sample: <em className="text-slate-300 not-italic">{selectedColSummary.sample}</em></span>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Close & Confirm Button */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold transition flex items-center gap-1.5 shadow-md shadow-blue-500/25"
-            >
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>Done / Apply to Graph</span>
-            </button>
+          {/* Mapped Fields & Done Button */}
+          <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+            {/* Active Field Mapping Status */}
+            <div className="flex items-center gap-3">
+              <div className="text-slate-400 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Mapped:</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {fVals.xField && (
+                  <span className="px-2 py-0.5 rounded bg-blue-950/80 border border-blue-800 text-blue-300 font-semibold text-[11px]">
+                    X: {fVals.xField}
+                  </span>
+                )}
+                {chartType === 'candlestick' ? (
+                  <>
+                    {fVals.openField && (
+                      <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800 text-emerald-300 text-[11px]">
+                        Open: {fVals.openField}
+                      </span>
+                    )}
+                    {fVals.closeField && (
+                      <span className="px-2 py-0.5 rounded bg-rose-950/80 border border-rose-800 text-rose-300 text-[11px]">
+                        Close: {fVals.closeField}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  (fVals.yFields || []).length > 0 && (
+                    <span className="px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-800 text-cyan-300 font-semibold text-[11px]">
+                      Series: {(fVals.yFields || []).slice(0, 3).join(', ')}
+                      {(fVals.yFields || []).length > 3 && ` +${(fVals.yFields || []).length - 3} more`}
+                    </span>
+                  )
+                )}
+                {!fVals.xField && (fVals.yFields || []).length === 0 && !fVals.openField && (
+                  <span className="text-slate-600 italic text-[11px]">Click a column above to assign it</span>
+                )}
+              </div>
+            </div>
+            {/* Close & Confirm Button */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-600 hidden sm:block">ESC to close</span>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold transition-all flex items-center gap-1.5 shadow-md shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-[1.02]"
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>Done / Apply to Graph</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

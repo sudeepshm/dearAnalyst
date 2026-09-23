@@ -350,31 +350,34 @@ export default function AddInteractPanel({
             </div>
 
             {/* Interactive XL Sheet Column Picker Hero Banner */}
-            <div className="p-3 rounded-xl bg-gradient-to-r from-blue-950/60 via-slate-900 to-emerald-950/40 border border-blue-500/30 flex items-center justify-between shadow-md">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex-shrink-0">
-                  <FileSpreadsheet className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
-                    <span>Spreadsheet Column Picker</span>
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 border border-blue-800 font-semibold uppercase">
-                      Sheet View
-                    </span>
+            <div className="p-3.5 rounded-xl bg-gradient-to-br from-slate-900 via-blue-950/40 to-emerald-950/30 border border-blue-500/25 hover:border-blue-500/50 transition-all duration-300 shadow-md group">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex-shrink-0">
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse border-2 border-slate-900" />
                   </div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    Click any column in your spreadsheet to assign to graph fields
+                  <div>
+                    <div className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                      <span>Spreadsheet Column Picker</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 border border-blue-800 font-semibold uppercase">
+                        Interactive
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      Click columns in your parsed spreadsheet to assign to graph fields
+                    </div>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => openSheetPickerFor(chartType === 'candlestick' ? 'openField' : chartType === 'scatter' ? 'xField' : 'yFields')}
+                  className="px-3.5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all duration-200 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 flex-shrink-0 group-hover:scale-[1.02]"
+                >
+                  <Table className="w-3.5 h-3.5" />
+                  <span>Open Sheet ↗</span>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => openSheetPickerFor(chartType === 'candlestick' ? 'openField' : chartType === 'scatter' ? 'xField' : 'yFields')}
-                className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition shadow-md shadow-blue-500/25 flex-shrink-0"
-              >
-                <Table className="w-3.5 h-3.5" />
-                <span>Open Sheet</span>
-              </button>
             </div>
 
             {chartType === 'candlestick' ? (

@@ -229,10 +229,28 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
 
   return (
     <section id="upload-section" className="w-full max-w-5xl mx-auto px-4 py-12">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-3">
-          Step 1 of 2
+      {/* Step Progress Indicator */}
+      <div className="flex items-center justify-center gap-0 mb-8">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-slate-950 font-bold text-xs flex-shrink-0 shadow-[0_0_12px_rgba(16,185,129,0.5)]">
+            1
+          </div>
+          <span className="text-xs font-mono font-semibold text-emerald-400">Upload Sheet</span>
         </div>
+        <div className={`h-0.5 w-16 mx-3 rounded-full transition-all duration-500 ${parsedData ? 'bg-emerald-500' : 'bg-slate-800'}`} />
+        <div className="flex items-center gap-2">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 transition-all duration-300 ${
+            parsedData 
+              ? 'bg-blue-500 text-white shadow-[0_0_12px_rgba(19,100,226,0.5)]' 
+              : 'bg-slate-800 text-slate-500 border border-slate-700'
+          }`}>
+            2
+          </div>
+          <span className={`text-xs font-mono font-semibold transition-colors ${parsedData ? 'text-blue-400' : 'text-slate-500'}`}>Story Studio</span>
+        </div>
+      </div>
+
+      <div className="text-center mb-8">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white font-display">
           Upload Spreadsheet Data
         </h2>
@@ -463,21 +481,37 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
                   <Table className="w-3.5 h-3.5 text-emerald-400" />
                   Raw Data Preview for "{currentSheetName}" (First {currentSheetData.preview.length} Rows)
                 </span>
+                <span className="text-[10px] font-mono text-slate-500">
+                  {currentSheetData.totalRows} total rows
+                </span>
               </div>
               <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 max-h-60">
                 <table className="w-full text-left text-xs font-mono">
                   <thead className="bg-slate-900/90 text-slate-300 border-b border-slate-800 sticky top-0">
                     <tr>
+                      <th className="p-2.5 text-center text-slate-600 text-[10px] w-8 border-r border-slate-800">#</th>
                       {currentSheetData.columns.map(c => (
-                        <th key={c} className="p-2.5 whitespace-nowrap">{c}</th>
+                        <th key={c} className="p-2.5 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                              currentSheetData.columnTypes[c] === 'number' ? 'bg-emerald-400' 
+                              : currentSheetData.columnTypes[c] === 'date' ? 'bg-cyan-400' 
+                              : 'bg-amber-400'
+                            }`} />
+                            <span>{c}</span>
+                          </div>
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-400">
                     {currentSheetData.preview.map((row, rIdx) => (
                       <tr key={rIdx} className="hover:bg-slate-900/40">
+                        <td className="p-2.5 text-center text-slate-600 text-[10px] border-r border-slate-800 select-none">{rIdx + 1}</td>
                         {currentSheetData.columns.map(c => (
-                          <td key={c} className="p-2.5 whitespace-nowrap">{String(row[c] ?? '')}</td>
+                          <td key={c} className={`p-2.5 whitespace-nowrap ${
+                            currentSheetData.columnTypes[c] === 'number' ? 'text-right text-emerald-300/80' : ''
+                          }`}>{String(row[c] ?? '')}</td>
                         ))}
                       </tr>
                     ))}

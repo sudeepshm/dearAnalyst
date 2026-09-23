@@ -17,7 +17,16 @@ import {
   Tv,
   Monitor,
   ShieldCheck,
-  Activity
+  Activity,
+  CandlestickChart,
+  BarChart3,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  TrendingUp,
+  ArrowUpDown,
+  Percent,
+  AreaChart
 } from 'lucide-react';
 import AddInteractPanel from './AddInteractPanel';
 import EChartsRenderer from './EChartsRenderer';
@@ -369,55 +378,96 @@ export default function StorySlideStudio({
       </div>
 
       {/* Slide Navigation Carousel / Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
-        {slides.map((slide, idx) => {
-          const isActive = idx === activeSlideIndex;
-          const slideSheet = slide.sheetName || defaultSheetName;
-          return (
-            <div
-              key={slide.id}
-              onClick={() => setActiveSlideIndex(idx)}
-              className={`group flex-shrink-0 cursor-pointer px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center gap-3 transition-all duration-200 ${
-                isActive
-                  ? 'bg-gradient-to-r from-blue-950/90 to-indigo-950/80 border-blue-500/60 text-blue-300 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-[1.02] font-semibold'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-blue-400 shadow-[0_0_8px_#1364e2]' : 'bg-slate-600'}`} />
-                <span className="font-semibold">Page {idx + 1}</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-                <span className={isActive ? 'text-slate-200' : 'text-slate-400'}>{slide.chartType.toUpperCase()}</span>
-                {sheetNames.length > 1 && (
-                  <span className="text-[10px] text-cyan-400 font-mono px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/60 truncate max-w-[100px]">
-                    {slideSheet}
-                  </span>
-                )}
-              </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          {slides.map((slide, idx) => {
+            const isActive = idx === activeSlideIndex;
+            const slideSheet = slide.sheetName || defaultSheetName;
+            // Map chart type to a compact icon
+            const chartIconMap = {
+              candlestick: CandlestickChart,
+              combo: Layers,
+              'dual-line': LineChart,
+              'multi-line': LineChart,
+              'clustered-bar': BarChart3,
+              'horizontal-clustered-bar': BarChart3,
+              'stacked-bar': BarChart3,
+              'stacked-bar-100': Percent,
+              'stacked-area': AreaChart,
+              waterfall: TrendingUp,
+              'diverging-bar': ArrowUpDown,
+              line: LineChart,
+              bar: BarChart3,
+              area: AreaChart,
+              scatter: ScatterChart,
+              pie: PieChart,
+            };
+            const ChartIcon = chartIconMap[slide.chartType] || BarChart3;
+            return (
+              <div
+                key={slide.id}
+                onClick={() => setActiveSlideIndex(idx)}
+                className={`group flex-shrink-0 cursor-pointer px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center gap-3 transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-950/90 to-indigo-950/80 border-blue-500/60 text-blue-300 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-[1.02] font-semibold'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-blue-400 shadow-[0_0_8px_#1364e2]' : 'bg-slate-600'}`} />
+                  <span className="font-semibold">Page {idx + 1}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <ChartIcon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+                  <span className={isActive ? 'text-slate-200' : 'text-slate-400'}>{slide.chartType}</span>
+                  {sheetNames.length > 1 && (
+                    <span className="text-[10px] text-cyan-400 font-mono px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/60 truncate max-w-[80px]">
+                      {slideSheet}
+                    </span>
+                  )}
+                </div>
 
-              {/* Duplicate & Delete Mini Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => { e.stopPropagation(); handleDuplicateSlide(idx); }}
-                  title="Duplicate Page"
-                  className="p-1 hover:text-blue-400 rounded hover:bg-slate-800"
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
-                {slides.length > 1 && (
+                {/* Duplicate & Delete Mini Actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteSlide(idx); }}
-                    title="Delete Page"
-                    className="p-1 hover:text-red-400 rounded hover:bg-slate-800"
+                    onClick={(e) => { e.stopPropagation(); handleDuplicateSlide(idx); }}
+                    title="Duplicate Page"
+                    className="p-1 hover:text-blue-400 rounded hover:bg-slate-800"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Copy className="w-3 h-3" />
                   </button>
-                )}
+                  {slides.length > 1 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteSlide(idx); }}
+                      title="Delete Page"
+                      className="p-1 hover:text-red-400 rounded hover:bg-slate-800"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+
+          {/* Add New Page Quick Button inline with tabs */}
+          <button
+            onClick={handleAddNewSlide}
+            title="Add a new story page"
+            className="flex-shrink-0 px-3 py-2.5 rounded-xl border border-dashed border-slate-700 text-slate-500 hover:text-blue-400 hover:border-blue-500/60 text-xs font-mono flex items-center gap-1.5 transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Page</span>
+          </button>
+        </div>
+
+        {/* Slide Progress Bar */}
+        <div className="h-0.5 bg-slate-900 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
+            style={{ width: `${((activeSlideIndex + 1) / slides.length) * 100}%` }}
+          />
+        </div>
       </div>
 
       {/* Workspace Grid: Left Configuration + Center Visualization + Right/Side Narrative Text Box */}
@@ -487,24 +537,43 @@ export default function StorySlideStudio({
               setInteractions={(val) => updateCurrentSlide({ interactions: typeof val === 'function' ? val(currentSlide.interactions) : val })}
             />
 
-            {/* Quick Page Info */}
-            <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-xs font-mono text-slate-400 flex items-center justify-between">
-              <span>Viewing: <strong className="text-emerald-400">Page {activeSlideIndex + 1} of {slides.length}</strong></span>
-              <div className="flex items-center gap-1">
-                <button
-                  disabled={activeSlideIndex === 0}
-                  onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
-                  className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  disabled={activeSlideIndex === slides.length - 1}
-                  onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
-                  className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+            {/* Quick Page Info with Navigation */}
+            <div className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-800/80 text-xs font-mono text-slate-400 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500">Page</span>
+                  <span className="text-white font-bold text-sm">{activeSlideIndex + 1}</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-slate-400">{slides.length}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    disabled={activeSlideIndex === 0}
+                    onClick={() => setActiveSlideIndex(activeSlideIndex - 1)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 disabled:opacity-30 border border-transparent hover:border-slate-700 transition"
+                    title="Previous Page"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    disabled={activeSlideIndex === slides.length - 1}
+                    onClick={() => setActiveSlideIndex(activeSlideIndex + 1)}
+                    className="p-1.5 rounded-lg hover:bg-slate-800 disabled:opacity-30 border border-transparent hover:border-slate-700 transition"
+                    title="Next Page"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              {/* Mini dot progress indicator */}
+              <div className="flex items-center gap-1.5">
+                {slides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveSlideIndex(idx)}
+                    className={`transition-all duration-200 rounded-full ${idx === activeSlideIndex ? 'w-4 h-1.5 bg-blue-400' : 'w-1.5 h-1.5 bg-slate-700 hover:bg-slate-500'}`}
+                  />
+                ))}
               </div>
             </div>
           </div>

@@ -128,3 +128,91 @@ body {
     linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
 }
+
+/* Smooth slide-up animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Shimmer skeleton loader */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* Interactive input glow on focus */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Selection highlight in brand color */
+::selection {
+  background: rgba(19, 100, 226, 0.35);
+  color: #fff;
+}
+
+/* Smooth border transitions for interactive elements */
+.interactive-border {
+  border-color: rgba(255, 255, 255, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.interactive-border:hover {
+  border-color: rgba(19, 100, 226, 0.4);
+  box-shadow: 0 0 0 1px rgba(19, 100, 226, 0.2);
+}
+
+/* Floating action button glow */
+.fab-glow {
+  box-shadow: 0 4px 20px -4px rgba(19, 100, 226, 0.5), 0 1px 3px rgba(0,0,0,0.4);
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+.fab-glow:hover {
+  box-shadow: 0 8px 30px -4px rgba(19, 100, 226, 0.7), 0 2px 6px rgba(0,0,0,0.5);
+  transform: translateY(-1px);
+}
+
+/* Scrollbar thin utility */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #1364e2;
+}
+
+/* Reduced motion safe micro-animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse,
+  .animate-spin,
+  .animate-slide-up,
+  .skeleton-shimmer {
+    animation: none;
+  }
+}
