@@ -5,16 +5,16 @@ import * as echarts from 'echarts';
 import { filterDataByPeriod, formatPeriodLabel, isEstimatePeriod } from '../utils/periodHelpers';
 
 const FINANCIAL_PALETTE = [
-  '#1364e2', // Flourish Electric Blue (Primary / Sales)
-  '#f54e8b', // Flourish Coral Rose (Operating Profit / Highlight)
-  '#9852d9', // Flourish Royal Violet (Net Profit / PAT)
-  '#00c4cc', // Flourish Cyan Teal (Margins / Cash Flow)
-  '#fca311', // Flourish Solar Amber (Cost Structure / Ratio)
-  '#10b981', // Flourish Fresh Mint (Growth / Yield)
-  '#6366f1', // Flourish Royal Indigo
-  '#f97316', // Flourish Tangerine Orange
-  '#0ea5e9', // Flourish Sky Blue
-  '#ec4899', // Flourish Hot Magenta
+  '#3b82f6', // Electric Blue        — primary metric / revenue
+  '#f43f5e', // Vivid Rose           — operating profit / highlight
+  '#a78bfa', // Soft Violet          — net profit / PAT
+  '#22d3ee', // Electric Cyan        — margin / cash flow
+  '#fbbf24', // Solar Amber          — cost structure / ratio
+  '#34d399', // Neon Mint            — growth / yield
+  '#818cf8', // Indigo Glow          — secondary metric
+  '#fb923c', // Neon Orange          — opex / capex
+  '#38bdf8', // Ice Blue             — secondary line
+  '#e879f9', // Vivid Fuchsia        — highlight outlier
 ];
 
 export default function EChartsRenderer({
@@ -71,11 +71,12 @@ export default function EChartsRenderer({
 
     if (!data || data.length === 0) {
       chart.setOption({
+        backgroundColor: 'transparent',
         title: {
-          text: 'No data selected for visualization',
+          text: 'No data — select columns to visualize',
           left: 'center',
           top: 'center',
-          textStyle: { color: '#64748b', fontSize: 14, fontFamily: 'Space Grotesk' },
+          textStyle: { color: '#3b5a8a', fontSize: 14, fontFamily: 'JetBrains Mono' },
         },
       });
       return;
@@ -124,15 +125,15 @@ export default function EChartsRenderer({
         trigger: chartType === 'scatter' ? 'item' : (interactions.tooltipTrigger || 'axis'),
         axisPointer: {
           type: interactions.axisPointerType || 'cross',
-          crossStyle: { color: '#1364e2', width: 1 },
-          shadowStyle: { color: 'rgba(19, 100, 226, 0.08)' },
-          lineStyle: { color: '#00c4cc', width: 1.5 },
+          crossStyle: { color: '#3b82f6', width: 1 },
+          shadowStyle: { color: 'rgba(59, 130, 246, 0.10)' },
+          lineStyle: { color: '#22d3ee', width: 1.5, type: 'dashed' },
         },
-        backgroundColor: 'rgba(12, 18, 36, 0.95)',
-        borderColor: 'rgba(19, 100, 226, 0.6)',
+        backgroundColor: 'rgba(2, 11, 28, 0.97)',
+        borderColor: 'rgba(59, 130, 246, 0.55)',
         borderWidth: 1,
         padding: [10, 14],
-        textStyle: { color: '#f8fafc', fontSize: 12, fontFamily: 'JetBrains Mono' },
+        textStyle: { color: '#e0eeff', fontSize: 12, fontFamily: 'JetBrains Mono' },
         formatter: (params) => {
           if (!params) return '';
           const items = Array.isArray(params) ? params : [params];
@@ -141,7 +142,7 @@ export default function EChartsRenderer({
           const isEst = isEstimatePeriod(axisVal);
           let html = `<div style="font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
             <span>${axisVal}</span>
-            ${isEst ? '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(0,196,204,0.18);color:#00c4cc;border:1px solid rgba(0,196,204,0.35);font-weight:normal;">Forward Estimate (E)</span>' : ''}
+            ${isEst ? '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(34,211,238,0.15);color:#22d3ee;border:1px solid rgba(34,211,238,0.35);font-weight:normal;">Estimate (E)</span>' : ''}
           </div>`;
           items.forEach((item) => {
             const val = Array.isArray(item.value) ? item.value[1] ?? item.value[0] : item.value;
@@ -149,9 +150,9 @@ export default function EChartsRenderer({
             html += `<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:11px;margin-top:3px;">
               <span style="display:inline-flex;align-items:center;gap:6px;">
                 <span style="width:8px;height:8px;border-radius:50%;background:${item.color};display:inline-block;"></span>
-                <span style="color:#94a3b8;">${item.seriesName || ''}</span>
+                <span style="color:#7094c0;">${item.seriesName || ''}</span>
               </span>
-              <strong style="color:#fff;font-family:'JetBrains Mono',monospace;">${formattedVal}</strong>
+              <strong style="color:#e0eeff;font-family:'JetBrains Mono',monospace;">${formattedVal}</strong>
             </div>`;
           });
           return html;
@@ -169,10 +170,20 @@ export default function EChartsRenderer({
         end: 100,
         height: 22,
         bottom: 8,
-        borderColor: '#1e293b',
-        fillerColor: 'rgba(19, 100, 226, 0.15)',
-        handleStyle: { color: '#1364e2' },
-        textStyle: { color: '#94a3b8' },
+        backgroundColor: 'rgba(2, 11, 28, 0.5)',
+        borderColor: '#0f2d5c',
+        fillerColor: 'rgba(59, 130, 246, 0.18)',
+        handleStyle: { color: '#3b82f6', borderColor: '#60a5fa' },
+        moveHandleStyle: { color: '#3b82f6' },
+        textStyle: { color: '#4d6a90', fontFamily: 'JetBrains Mono' },
+        dataBackground: {
+          lineStyle: { color: '#1e3a6e', width: 1 },
+          areaStyle: { color: 'rgba(59, 130, 246, 0.06)' },
+        },
+        selectedDataBackground: {
+          lineStyle: { color: '#3b82f6' },
+          areaStyle: { color: 'rgba(59, 130, 246, 0.15)' },
+        },
       });
       dataZoom.push({
         type: 'inside',
@@ -199,41 +210,36 @@ export default function EChartsRenderer({
         type: 'candlestick',
         data: candleData,
         itemStyle: {
-          color: '#10b981',       // Bullish candle fill
-          color0: '#ef4444',      // Bearish candle fill
-          borderColor: '#10b981', // Bullish candle border
-          borderColor0: '#ef4444' // Bearish candle border
+          color: '#34d399',        // Bullish — electric mint
+          color0: '#f43f5e',       // Bearish — vivid rose
+          borderColor: '#34d399',
+          borderColor0: '#f43f5e',
         },
         emphasis: interactions.enableMouseHover ? {
           itemStyle: {
-            shadowBlur: 10,
-            shadowColor: 'rgba(16, 185, 129, 0.8)',
+            shadowBlur: 14,
+            shadowColor: 'rgba(52, 211, 153, 0.7)',
           },
         } : {},
       });
 
-      // Add a 5-period moving average if enough data
+      // MA line — ice blue
       if (filteredData.length >= 5) {
         const ma5 = [];
         for (let i = 0; i < filteredData.length; i++) {
-          if (i < 4) {
-            ma5.push('-');
-            continue;
-          }
+          if (i < 4) { ma5.push('-'); continue; }
           let sum = 0;
-          for (let j = 0; j < 5; j++) {
-            sum += Number(filteredData[i - j][closeField]) || 0;
-          }
+          for (let j = 0; j < 5; j++) sum += Number(filteredData[i - j][closeField]) || 0;
           ma5.push(Number((sum / 5).toFixed(2)));
         }
-
         series.push({
           name: 'MA (5)',
           type: 'line',
           data: ma5,
           smooth: true,
           showSymbol: false,
-          lineStyle: { width: 2, color: '#06b6d4', opacity: 0.8 },
+          lineStyle: { width: 2, color: '#38bdf8', opacity: 0.85 },
+          itemStyle: { color: '#38bdf8' },
         });
       }
     } else if (chartType === 'combo') {
@@ -285,7 +291,6 @@ export default function EChartsRenderer({
         });
       }
     } else if (chartType === 'dual-line') {
-      // Dual-Axis Line: Metric 1 (Left Y-Axis) & Subsequent Metrics (Right Y-Axis)
       const leftMetric = effectiveYFields[0] || yField;
       series.push({
         name: yAxisLabel || leftMetric,
@@ -296,6 +301,12 @@ export default function EChartsRenderer({
         itemStyle: { color: FINANCIAL_PALETTE[0] },
         lineStyle: { width: 3, color: FINANCIAL_PALETTE[0] },
         symbolSize: 6,
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: FINANCIAL_PALETTE[0] + '30' },
+            { offset: 1, color: FINANCIAL_PALETTE[0] + '05' },
+          ]),
+        },
       });
 
       const rightMetrics = effectiveYFields.slice(1);
@@ -320,8 +331,8 @@ export default function EChartsRenderer({
           yAxisIndex: 1,
           smooth: true,
           data: secondaryData,
-          itemStyle: { color: '#06b6d4' },
-          lineStyle: { width: 3, color: '#06b6d4', type: 'dashed' },
+          itemStyle: { color: '#22d3ee' },
+          lineStyle: { width: 3, color: '#22d3ee', type: 'dashed' },
           symbolSize: 6,
         });
       }
@@ -442,7 +453,6 @@ export default function EChartsRenderer({
         });
       });
     } else if (chartType === 'waterfall') {
-      // Financial Waterfall / Bridge Chart
       const baseValues = [];
       const stepValues = [];
       let runningTotal = 0;
@@ -452,7 +462,7 @@ export default function EChartsRenderer({
           baseValues.push(Number(runningTotal.toFixed(2)));
           stepValues.push({
             value: Number(val.toFixed(2)),
-            itemStyle: { color: '#10b981', borderRadius: [4, 4, 0, 0] },
+            itemStyle: { color: '#34d399', borderRadius: [4, 4, 0, 0] },
           });
           runningTotal += val;
         } else {
@@ -460,7 +470,7 @@ export default function EChartsRenderer({
           baseValues.push(Number(runningTotal.toFixed(2)));
           stepValues.push({
             value: Number(Math.abs(val).toFixed(2)),
-            itemStyle: { color: '#ef4444', borderRadius: [0, 0, 4, 4] },
+            itemStyle: { color: '#f43f5e', borderRadius: [0, 0, 4, 4] },
           });
         }
       });
@@ -481,11 +491,10 @@ export default function EChartsRenderer({
         data: stepValues,
       });
     } else if (chartType === 'diverging-bar') {
-      // Diverging Bar (+/- from 0) + Overlaid Trend Line
       const barData = primaryData.map((val) => ({
         value: val,
         itemStyle: {
-          color: val >= 0 ? '#10b981' : '#ef4444',
+          color: val >= 0 ? '#34d399' : '#f43f5e',
           borderRadius: val >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4],
         },
       }));
@@ -502,8 +511,8 @@ export default function EChartsRenderer({
         type: 'line',
         smooth: true,
         data: secondaryData.length > 0 ? secondaryData : primaryData,
-        itemStyle: { color: '#06b6d4' },
-        lineStyle: { width: 2.5, color: '#06b6d4' },
+        itemStyle: { color: '#22d3ee' },
+        lineStyle: { width: 2.5, color: '#22d3ee' },
       });
     } else if (chartType === 'line') {
       series.push({
@@ -511,12 +520,18 @@ export default function EChartsRenderer({
         type: 'line',
         smooth: true,
         data: primaryData,
-        itemStyle: { color: '#06b6d4' },
-        lineStyle: { width: 3 },
+        itemStyle: { color: '#22d3ee' },
+        lineStyle: { width: 3, color: '#22d3ee' },
         symbolSize: 6,
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(34, 211, 238, 0.25)' },
+            { offset: 1, color: 'rgba(34, 211, 238, 0.01)' },
+          ]),
+        },
         emphasis: interactions.enableMouseHover ? {
           focus: 'series',
-          itemStyle: { shadowBlur: 12, shadowColor: '#06b6d4' },
+          itemStyle: { shadowBlur: 14, shadowColor: 'rgba(34, 211, 238, 0.7)' },
         } : {},
       });
     } else if (chartType === 'bar') {
@@ -542,12 +557,12 @@ export default function EChartsRenderer({
         type: 'line',
         smooth: true,
         data: primaryData,
-        itemStyle: { color: '#8b5cf6' },
-        lineStyle: { width: 2.5, color: '#8b5cf6' },
+        itemStyle: { color: '#a78bfa' },
+        lineStyle: { width: 2.5, color: '#a78bfa' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(139, 92, 246, 0.55)' },
-            { offset: 1, color: 'rgba(139, 92, 246, 0.02)' },
+            { offset: 0, color: 'rgba(167, 139, 250, 0.55)' },
+            { offset: 1, color: 'rgba(167, 139, 250, 0.02)' },
           ]),
         },
       });
@@ -555,9 +570,13 @@ export default function EChartsRenderer({
       series.push({
         name: yAxisLabel || effectiveYFields[0] || yField,
         type: 'scatter',
-        symbolSize: 10,
+        symbolSize: 11,
         data: filteredData.map((d) => [Number(d[xField]) || 0, Number(d[effectiveYFields[0] || yField]) || 0]),
-        itemStyle: { color: '#f59e0b' },
+        itemStyle: {
+          color: '#fbbf24',
+          shadowBlur: 8,
+          shadowColor: 'rgba(251, 191, 36, 0.5)',
+        },
       });
     } else if (chartType === 'pie') {
       if (breakdownMode === 'composition') {
@@ -573,23 +592,23 @@ export default function EChartsRenderer({
         series.push({
           name: chartTitle || targetPeriod || 'Composition',
           type: 'pie',
-          radius: ['35%', '70%'],
+          radius: ['38%', '72%'],
           avoidLabelOverlap: true,
           itemStyle: {
             borderRadius: 8,
-            borderColor: '#111827',
+            borderColor: '#020b18',
             borderWidth: 2,
           },
           color: FINANCIAL_PALETTE,
           label: {
             show: true,
             formatter: '{b}: {c} ({d}%)',
-            color: '#94a3b8',
+            color: '#7094c0',
+            fontSize: 11,
           },
           data: pieData,
         });
       } else {
-        // Mode A: Timeline Distribution (e.g. OPM % across all periods)
         const primaryMetric = effectiveYFields[0] || yField;
         const metricVals = getMetricSeriesData(primaryMetric);
         const pieData = xData.map((periodLabel, i) => ({
@@ -600,18 +619,19 @@ export default function EChartsRenderer({
         series.push({
           name: chartTitle || primaryMetric,
           type: 'pie',
-          radius: ['35%', '70%'],
+          radius: ['38%', '72%'],
           avoidLabelOverlap: true,
           itemStyle: {
             borderRadius: 8,
-            borderColor: '#111827',
+            borderColor: '#020b18',
             borderWidth: 2,
           },
           color: FINANCIAL_PALETTE,
           label: {
             show: true,
             formatter: '{b}: {d}%',
-            color: '#94a3b8',
+            color: '#7094c0',
+            fontSize: 11,
           },
           data: pieData,
         });
@@ -625,14 +645,13 @@ export default function EChartsRenderer({
 
     let yAxisConfig;
     if (isHorizontalBar) {
-      // Horizontal Clustered Bar: Y-Axis is Categories / Entities
       yAxisConfig = {
         type: 'category',
         data: xData,
         name: yAxisLabel || 'Category',
-        nameTextStyle: { color: '#64748b', fontSize: 11 },
-        axisLine: { lineStyle: { color: '#334155' } },
-        axisLabel: { color: '#94a3b8', fontSize: 11 },
+        nameTextStyle: { color: '#4d6a90', fontSize: 11 },
+        axisLine: { lineStyle: { color: '#0f2d5c' } },
+        axisLabel: { color: '#7094c0', fontSize: 11 },
         splitLine: { show: false },
       };
     } else if (isDualAxis) {
@@ -646,12 +665,12 @@ export default function EChartsRenderer({
           scale: true,
           name: yAxisLabel || (series.find((s) => s.yAxisIndex === 0)?.name) || yField || 'Primary',
           position: 'left',
-          nameTextStyle: { color: '#1364e2', fontSize: 11, padding: [0, 0, 4, 0] },
-          axisLine: { show: true, lineStyle: { color: '#1364e2' } },
-          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          nameTextStyle: { color: '#3b82f6', fontSize: 11, padding: [0, 0, 4, 0] },
+          axisLine: { show: true, lineStyle: { color: '#3b82f6' } },
+          axisLabel: { color: '#7094c0', fontSize: 11 },
           splitLine: {
             show: interactions.showGridLines !== false,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
+            lineStyle: { color: 'rgba(59, 130, 246, 0.08)', type: 'dashed' },
           },
         },
         {
@@ -659,10 +678,10 @@ export default function EChartsRenderer({
           scale: true,
           name: y2AxisLabel || rightNames || y2Field || 'Secondary Metric',
           position: 'right',
-          nameTextStyle: { color: '#f54e8b', fontSize: 11, padding: [0, 0, 4, 0] },
-          axisLine: { show: true, lineStyle: { color: '#f54e8b' } },
+          nameTextStyle: { color: '#f43f5e', fontSize: 11, padding: [0, 0, 4, 0] },
+          axisLine: { show: true, lineStyle: { color: '#f43f5e' } },
           axisLabel: {
-            color: '#94a3b8',
+            color: '#7094c0',
             fontSize: 11,
             formatter: isPercentageAxis ? '{value}%' : '{value}',
           },
@@ -675,10 +694,10 @@ export default function EChartsRenderer({
         min: 0,
         max: 100,
         name: '% of Total',
-        axisLabel: { formatter: '{value}%', color: '#94a3b8', fontSize: 11 },
+        axisLabel: { formatter: '{value}%', color: '#7094c0', fontSize: 11 },
         splitLine: {
           show: interactions.showGridLines !== false,
-          lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
+          lineStyle: { color: 'rgba(59, 130, 246, 0.08)', type: 'dashed' },
         },
       };
     } else {
@@ -686,12 +705,12 @@ export default function EChartsRenderer({
         type: 'value',
         scale: true,
         name: yAxisLabel || yField,
-        nameTextStyle: { color: '#64748b', fontSize: 11 },
-        axisLine: { lineStyle: { color: '#334155' } },
-        axisLabel: { color: '#94a3b8', fontSize: 11 },
+        nameTextStyle: { color: '#4d6a90', fontSize: 11 },
+        axisLine: { lineStyle: { color: '#0f2d5c' } },
+        axisLabel: { color: '#7094c0', fontSize: 11 },
         splitLine: {
           show: interactions.showGridLines !== false,
-          lineStyle: { color: 'rgba(255, 255, 255, 0.05)' },
+          lineStyle: { color: 'rgba(59, 130, 246, 0.08)', type: 'dashed' },
         },
       };
     }
@@ -703,35 +722,33 @@ export default function EChartsRenderer({
     let xAxisConfig;
     if (isCartesian) {
       if (isHorizontalBar) {
-        // Horizontal Clustered Bar: X-Axis is Numerical Values
         xAxisConfig = {
           type: 'value',
           scale: true,
           name: hasCustomXLabel ? xAxisLabel : (yField || 'Value'),
           nameLocation: 'middle',
           nameGap: 30,
-          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
-          axisLine: { lineStyle: { color: '#334155' } },
-          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          nameTextStyle: { color: '#7094c0', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#0f2d5c' } },
+          axisLabel: { color: '#7094c0', fontSize: 11 },
           splitLine: {
             show: interactions.showGridLines !== false,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+            lineStyle: { color: 'rgba(59, 130, 246, 0.07)', type: 'dashed' },
           },
         };
       } else if (isScatter) {
-        // Scatter Plot: X-Axis is Independent Numerical Variable
         xAxisConfig = {
           type: 'value',
           scale: true,
           name: hasCustomXLabel ? xAxisLabel : (xField || 'X-Axis'),
           nameLocation: 'middle',
           nameGap: 30,
-          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
-          axisLine: { lineStyle: { color: '#334155' } },
-          axisLabel: { color: '#94a3b8', fontSize: 11 },
+          nameTextStyle: { color: '#7094c0', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#0f2d5c' } },
+          axisLabel: { color: '#7094c0', fontSize: 11 },
           splitLine: {
             show: interactions.showGridLines !== false,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+            lineStyle: { color: 'rgba(59, 130, 246, 0.07)', type: 'dashed' },
           },
         };
       } else {
@@ -741,15 +758,15 @@ export default function EChartsRenderer({
           name: hasCustomXLabel ? xAxisLabel : '',
           nameLocation: 'middle',
           nameGap: 36,
-          nameTextStyle: { color: '#94a3b8', fontSize: 11, fontWeight: 500 },
-          axisLine: { lineStyle: { color: '#334155' } },
+          nameTextStyle: { color: '#7094c0', fontSize: 11, fontWeight: 500 },
+          axisLine: { lineStyle: { color: '#0f2d5c' } },
           axisLabel: {
-            color: (val) => (isEstimatePeriod(val) ? '#00c4cc' : '#94a3b8'),
+            color: (val) => (isEstimatePeriod(val) ? '#22d3ee' : '#7094c0'),
             fontSize: 11,
           },
           splitLine: {
             show: interactions.showGridLines !== false,
-            lineStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+            lineStyle: { color: 'rgba(59, 130, 246, 0.06)', type: 'dashed' },
           },
         };
       }
@@ -763,20 +780,23 @@ export default function EChartsRenderer({
         left: 'left',
         top: 0,
         textStyle: {
-          color: '#f1f5f9',
-          fontSize: 16,
-          fontWeight: 600,
-          fontFamily: 'Outfit, Space Grotesk',
+          color: '#e0eeff',
+          fontSize: 15,
+          fontWeight: 700,
+          fontFamily: 'Outfit, Space Grotesk, sans-serif',
+          textShadowBlur: 8,
+          textShadowColor: 'rgba(59, 130, 246, 0.4)',
         },
-        subtextStyle: { color: '#94a3b8', fontSize: 11 },
+        subtextStyle: { color: '#4d6a90', fontSize: 11, fontFamily: 'JetBrains Mono' },
       },
       tooltip,
       legend: {
         show: interactions.enableLegend !== false,
         top: 6,
         right: 16,
-        textStyle: { color: '#94a3b8', fontSize: 12, fontFamily: 'Space Grotesk' },
+        textStyle: { color: '#7094c0', fontSize: 11, fontFamily: 'JetBrains Mono' },
         itemGap: 16,
+        icon: 'roundRect',
       },
       grid: isCartesian
         ? {

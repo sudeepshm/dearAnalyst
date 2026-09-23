@@ -6,24 +6,20 @@ import ExcelUploader from '@/components/ExcelUploader';
 import StorySlideStudio from '@/components/StorySlideStudio';
 import DownloadStoryModal from '@/components/DownloadStoryModal';
 import VisualChartCatalogue from '@/components/VisualChartCatalogue';
-import { Sparkles, BarChart3, Layers, FileSpreadsheet } from 'lucide-react';
+import { TrendingUp, BarChart3, FileSpreadsheet } from 'lucide-react';
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
-  const [currentStep, setCurrentStep] = useState('hero'); // 'hero' | 'upload' | 'studio'
-  const [dataset, setDataset] = useState(null);
+  const [mounted, setMounted]                       = useState(false);
+  const [currentStep, setCurrentStep]               = useState('hero');
+  const [dataset, setDataset]                       = useState(null);
   const [preferredChartType, setPreferredChartType] = useState('candlestick');
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [exportStoryPayload, setExportStoryPayload] = useState(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const handleStartStory = (chartId = 'candlestick') => {
-    if (chartId && typeof chartId === 'string') {
-      setPreferredChartType(chartId);
-    }
+    if (chartId && typeof chartId === 'string') setPreferredChartType(chartId);
     setCurrentStep('upload');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -46,66 +42,79 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-[#050811] text-slate-100">
-        <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+      <main className="min-h-screen flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="font-mono text-xs text-[var(--text-muted)] tracking-wider">Initializing studio...</span>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col bg-market-dark text-slate-100 selection:bg-emerald-500 selection:text-black">
-      {/* 1. Landing Hero with animated Candlestick Graph & Brand Banner */}
+    <main className="min-h-screen flex flex-col text-[var(--text-body)]">
+
+      {/* ─── HERO ─────────────────────────────────────────────── */}
       {currentStep === 'hero' && (
         <>
           <CandleStickHero onStartStory={() => handleStartStory()} />
           <VisualChartCatalogue onStartStory={handleStartStory} />
-          
-          {/* Main Page Rich Brand Footer */}
-          <footer className="w-full border-t border-slate-800/80 bg-slate-950/80 backdrop-blur-md py-10 px-4 sm:px-8 mt-12">
+
+          {/* Footer */}
+          <footer className="w-full border-t border-[var(--border-dim)] glass-panel py-10 px-6 sm:px-10 mt-12">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex flex-col items-center md:items-start gap-1">
-                <div className="brand-font text-2xl font-extrabold flex items-center gap-1.5">
-                  <span className="text-white">dear</span>
-                  <span className="text-emerald-400">Analyst</span>
+              {/* Brand */}
+              <div className="flex items-center gap-3">
+                <div className="relative w-7 h-7 flex-shrink-0">
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600" />
+                  <div className="absolute inset-[1px] rounded-[5px] bg-[#01060f] flex items-center justify-center">
+                    <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
+                  </div>
                 </div>
-                <span className="text-xs font-mono text-slate-400 tracking-widest uppercase">
-                  DATA. INSIGHT. IMPACT.
-                </span>
+                <div>
+                  <div className="brand-font text-[15px] text-white leading-none">
+                    dear<span className="text-blue-400">Analyst</span>
+                  </div>
+                  <div className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+                    DATA · INSIGHT · IMPACT
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-6 text-xs font-mono text-slate-400">
-                <a href="#chart-catalogue" className="hover:text-emerald-400 transition">
-                  Visual Catalogue
-                </a>
-                <span>&bull;</span>
-                <button onClick={() => handleStartStory()} className="hover:text-emerald-400 transition">
-                  Upload Workbook
-                </button>
-                <span>&bull;</span>
-                <span className="text-slate-600">Apache ECharts 5.5</span>
+              {/* Links */}
+              <div className="flex items-center gap-6 text-[11px] font-mono text-[var(--text-muted)]">
+                <a href="#chart-catalogue" className="hover:text-blue-400 transition-colors">Visual Catalogue</a>
+                <span className="text-[var(--border-dim)]">·</span>
+                <button onClick={() => handleStartStory()} className="hover:text-blue-400 transition-colors">Upload Workbook</button>
+                <span className="text-[var(--border-dim)]">·</span>
+                <span className="text-[var(--text-muted)]/50">Apache ECharts 5.5</span>
               </div>
 
-              <div className="text-xs font-mono text-slate-500">
-                &copy; 2026 dearAnalyst. Built for financial intelligence.
+              <div className="text-[10px] font-mono text-[var(--text-muted)]/50">
+                © 2026 dearAnalyst · Built for financial intelligence
               </div>
             </div>
           </footer>
         </>
       )}
 
-      {/* 2. Excel Upload Section */}
+      {/* ─── UPLOAD ───────────────────────────────────────────── */}
       {currentStep === 'upload' && (
-        <div className="py-6">
-          <div className="max-w-6xl mx-auto px-4 mb-4 flex items-center justify-between">
+        <div className="min-h-screen flex flex-col">
+          {/* Mini header */}
+          <div className="w-full px-6 sm:px-10 py-4 border-b border-[var(--border-dim)] glass-panel flex items-center justify-between">
             <button
               onClick={() => setCurrentStep('hero')}
-              className="text-xs font-mono text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition"
+              className="flex items-center gap-2 text-[11px] font-mono text-[var(--text-muted)] hover:text-blue-400 transition-colors"
             >
-              &larr; Return to Home & Visual Catalogue
+              <span>←</span> Back to Home
             </button>
-            <div className="brand-font text-lg font-bold text-white flex items-center gap-1.5">
-              <span className="text-slate-400">dear</span>
-              <span className="text-emerald-400">Analyst</span>
+            <div className="flex items-center gap-2.5">
+              <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+              <span className="brand-font text-[15px] text-white">dear<span className="text-blue-400">Analyst</span></span>
+            </div>
+            <div className="text-[11px] font-mono text-[var(--text-muted)]">
+              Step 1 of 2
             </div>
           </div>
           <ExcelUploader
@@ -115,7 +124,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* 3. Multi-Page Story & Visualization Studio */}
+      {/* ─── STUDIO ───────────────────────────────────────────── */}
       {currentStep === 'studio' && dataset && (
         <StorySlideStudio
           dataset={dataset}
@@ -125,7 +134,7 @@ export default function Home() {
         />
       )}
 
-      {/* 4. Global Download Story Modal (Callable anytime irrespective of pages) */}
+      {/* ─── DOWNLOAD MODAL ───────────────────────────────────── */}
       <DownloadStoryModal
         isOpen={isDownloadModalOpen}
         onClose={() => setIsDownloadModalOpen(false)}
