@@ -254,7 +254,7 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white font-display">
           Upload Spreadsheet Data
         </h2>
-        <p className="text-sm sm:text-base text-slate-400 max-w-lg mx-auto mt-2">
+        <p className="text-sm sm:text-base text-slate-300 max-w-lg mx-auto mt-2">
           Drop your Excel (.xlsx, .xls) or CSV sheet. dearAnalyst automatically detects numeric coordinates, dates, and candlestick columns.
         </p>
       </div>
@@ -270,7 +270,7 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
             className={`relative group cursor-pointer border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center transition-all duration-300 glass-card ${
               isDragging 
                 ? 'border-emerald-400 bg-emerald-950/20 scale-[1.01] shadow-2xl shadow-emerald-500/20' 
-                : 'border-slate-700 hover:border-emerald-500/60 hover:bg-slate-900/60'
+                : 'border-white/15 hover:border-emerald-400/60 hover:bg-white/5'
             }`}
           >
             <input
@@ -291,22 +291,22 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
               </div>
 
               <div>
-                <p className="text-base sm:text-lg font-semibold text-slate-100">
+                <p className="text-base sm:text-lg font-bold text-white">
                   Click to browse or drag & drop Excel sheet
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-slate-300 mt-1">
                   Supports Microsoft Excel (.xlsx, .xls) and Comma-Separated Values (.csv)
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400/80 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-2 text-xs font-mono text-emerald-300 bg-black/60 px-3 py-1.5 rounded-lg border border-white/10">
                 <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
                 <span>Auto-detects Date, Open, High, Low, Close & Volume</span>
               </div>
             </div>
 
             {loading && (
-              <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center gap-3">
+              <div className="absolute inset-0 bg-black/85 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center gap-3">
                 <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-sm font-mono text-emerald-400">Parsing spreadsheet columns & rows...</span>
               </div>
@@ -321,21 +321,21 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
           )}
 
           {/* Quick Demo Dataset Option */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-card border border-slate-800">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl glass-card border border-white/15">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-slate-200">No Excel file on hand?</h4>
-                <p className="text-xs text-slate-400">Test immediately with our realistic 60-day stock market dataset.</p>
+                <h4 className="text-sm font-semibold text-white">No Excel file on hand?</h4>
+                <p className="text-xs text-slate-300">Test immediately with our realistic 60-day stock market dataset.</p>
               </div>
             </div>
 
             <button
               onClick={loadSampleDataset}
               disabled={loading}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold font-mono text-[#00d2ff] bg-slate-900 border border-cyan-500/50 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(0,210,255,0.25)] transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold font-mono text-white bg-white/10 hover:bg-white hover:text-black border border-white/20 transition-all flex items-center gap-2"
             >
               <span>Load Market Dataset</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -366,26 +366,26 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
 
         return (
           /* Data Verification & Preview Card */
-          <div className="space-y-6 glass-panel-glow rounded-3xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+          <div className="space-y-6 glass-panel-glow rounded-3xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300 border border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[#00ff87]">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white flex items-center gap-2">
                     <span>{parsedData.fileName}</span>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950 text-[#00ff87] border border-emerald-800">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
                       Ready
                     </span>
                     {parsedData.sheetNames && parsedData.sheetNames.length > 1 && (
-                      <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950 text-[#38bdf8] border border-cyan-800">
+                      <span className="text-xs font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
                         {parsedData.sheetNames.length} Sheets Available
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Active Sheet: <strong className="text-[#00ff87]">"{currentSheetName}"</strong> &bull; {currentSheetData.totalRows} rows &bull; {currentSheetData.columns.length} columns detected
+                  <p className="text-xs text-slate-300">
+                    Active Sheet: <strong className="text-emerald-400">"{currentSheetName}"</strong> &bull; {currentSheetData.totalRows} rows &bull; {currentSheetData.columns.length} columns detected
                   </p>
                 </div>
               </div>
@@ -396,26 +396,26 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
                     setParsedData(null);
                     setActivePreviewSheet(null);
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700 transition"
+                  className="px-4 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white hover:bg-white/10 border border-white/15 transition"
                 >
                   Change File
                 </button>
                 <button
                   onClick={handleContinue}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-[#00ff87] via-[#10b981] to-[#00d2ff] hover:scale-[1.02] shadow-[0_0_25px_rgba(0,255,135,0.35)] hover:shadow-[0_0_40px_rgba(0,255,135,0.55)] transition-all flex items-center gap-2 border border-emerald-300/50"
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-black bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:scale-[1.02] shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_40px_rgba(16,185,129,0.55)] transition-all flex items-center gap-2 border border-emerald-300/50"
                 >
                   <span>Continue to Story Studio</span>
-                  <ArrowRight className="w-4 h-4 text-slate-950" />
+                  <ArrowRight className="w-4 h-4 text-black" />
                 </button>
               </div>
             </div>
 
             {/* Multi-sheet Tabs Selector if workbook has more than 1 sheet */}
             {parsedData.sheetNames && parsedData.sheetNames.length > 1 && (
-              <div className="space-y-2.5 p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <div className="space-y-2.5 p-4 rounded-2xl bg-[#0a0a0d] border border-white/10">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold flex items-center gap-1.5">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-[#00d2ff]" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold flex items-center gap-1.5">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-cyan-400" />
                     Available Worksheets ({parsedData.sheetNames.length})
                   </span>
                   <span className="text-[11px] font-mono text-slate-400">
@@ -432,14 +432,14 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
                         onClick={() => setActivePreviewSheet(sName)}
                         className={`px-3 py-2 rounded-xl text-xs font-mono transition flex items-center gap-2 border ${
                           isSelected
-                            ? 'bg-gradient-to-r from-emerald-500/25 to-teal-500/15 text-[#00ff87] border-[#00ff87]/60 shadow-[0_0_15px_rgba(0,255,135,0.2)] scale-[1.02] font-semibold'
-                            : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.2)] scale-[1.02] font-semibold'
+                            : 'bg-black/60 text-slate-300 border-white/10 hover:text-white hover:border-white/30'
                         }`}
                       >
-                        <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-[#00ff87]' : 'bg-slate-600'}`} />
+                        <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-400' : 'bg-slate-600'}`} />
                         <strong>{sName}</strong>
                         {sheetItem && (
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-slate-400">
                             ({sheetItem.totalRows} rows)
                           </span>
                         )}
@@ -453,10 +453,10 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
             {/* Detected Columns Chips for the selected sheet */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-slate-400">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300">
                   Detected Column Fields in <span className="text-emerald-400 font-bold">"{currentSheetName}"</span>:
                 </h4>
-                <span className="text-xs font-mono text-slate-500">
+                <span className="text-xs font-mono text-slate-400">
                   {currentSheetData.columns.length} columns
                 </span>
               </div>
@@ -464,11 +464,11 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
                 {currentSheetData.columns.map((col) => (
                   <span
                     key={col}
-                    className="px-2.5 py-1 rounded-lg text-xs font-mono bg-slate-900 border border-slate-700/80 text-slate-300 flex items-center gap-1.5"
+                    className="px-2.5 py-1 rounded-lg text-xs font-mono bg-[#0e0e12] border border-white/15 text-slate-200 flex items-center gap-1.5"
                   >
                     <span className={`w-1.5 h-1.5 rounded-full ${currentSheetData.columnTypes[col] === 'number' ? 'bg-emerald-400' : currentSheetData.columnTypes[col] === 'date' ? 'bg-cyan-400' : 'bg-amber-400'}`} />
-                    <strong>{col}</strong>
-                    <span className="text-[10px] text-slate-500 uppercase">({currentSheetData.columnTypes[col]})</span>
+                    <strong className="text-white">{col}</strong>
+                    <span className="text-[10px] text-slate-400 uppercase">({currentSheetData.columnTypes[col]})</span>
                   </span>
                 ))}
               </div>
@@ -477,19 +477,19 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
             {/* Table Preview for the selected sheet */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                <span className="text-xs font-mono text-slate-200 flex items-center gap-1.5">
                   <Table className="w-3.5 h-3.5 text-emerald-400" />
                   Raw Data Preview for "{currentSheetName}" (First {currentSheetData.preview.length} Rows)
                 </span>
-                <span className="text-[10px] font-mono text-slate-500">
+                <span className="text-[10px] font-mono text-slate-400">
                   {currentSheetData.totalRows} total rows
                 </span>
               </div>
-              <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60 max-h-60">
+              <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/80 max-h-60">
                 <table className="w-full text-left text-xs font-mono">
-                  <thead className="bg-slate-900/90 text-slate-300 border-b border-slate-800 sticky top-0">
+                  <thead className="bg-[#111116] text-white border-b border-white/10 sticky top-0">
                     <tr>
-                      <th className="p-2.5 text-center text-slate-600 text-[10px] w-8 border-r border-slate-800">#</th>
+                      <th className="p-2.5 text-center text-slate-400 text-[10px] w-8 border-r border-white/10">#</th>
                       {currentSheetData.columns.map(c => (
                         <th key={c} className="p-2.5 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
@@ -498,19 +498,19 @@ export default function ExcelUploader({ onDataLoaded, onCancel }) {
                               : currentSheetData.columnTypes[c] === 'date' ? 'bg-cyan-400' 
                               : 'bg-amber-400'
                             }`} />
-                            <span>{c}</span>
+                            <span className="text-white">{c}</span>
                           </div>
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-slate-400">
+                  <tbody className="divide-y divide-white/5 text-slate-200">
                     {currentSheetData.preview.map((row, rIdx) => (
-                      <tr key={rIdx} className="hover:bg-slate-900/40">
-                        <td className="p-2.5 text-center text-slate-600 text-[10px] border-r border-slate-800 select-none">{rIdx + 1}</td>
+                      <tr key={rIdx} className="hover:bg-white/5">
+                        <td className="p-2.5 text-center text-slate-400 text-[10px] border-r border-white/10 select-none">{rIdx + 1}</td>
                         {currentSheetData.columns.map(c => (
                           <td key={c} className={`p-2.5 whitespace-nowrap ${
-                            currentSheetData.columnTypes[c] === 'number' ? 'text-right text-emerald-300/80' : ''
+                            currentSheetData.columnTypes[c] === 'number' ? 'text-right text-emerald-300 font-semibold' : ''
                           }`}>{String(row[c] ?? '')}</td>
                         ))}
                       </tr>

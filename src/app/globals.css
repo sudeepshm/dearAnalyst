@@ -3,32 +3,37 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   DESIGN TOKENS — dearAnalyst Professional Theme
+   DESIGN TOKENS — dearAnalyst High-Contrast Black Grid Theme
 ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* Canvas */
-  --bg-base:     #01060f;   /* true-black navy — the deepest layer */
-  --bg-surface:  #03101f;   /* elevated surface */
-  --bg-card:     rgba(3, 14, 30, 0.88);
+  /* Canvas — Pure Pitch Black */
+  --bg-base:     #000000;   /* absolute black */
+  --bg-surface:  #08080a;   /* elevated obsidian surface */
+  --bg-card:     rgba(13, 13, 16, 0.88);
 
-  /* Typography */
-  --text-primary: #eef4ff;  /* ice-white for headlines */
-  --text-body:    #8fadc8;  /* steel-blue for body */
-  --text-muted:   #3d5a78;  /* dim labels */
-  --text-mono:    #5b8ab0;  /* code/labels */
+  /* Typography — Crisp High-Contrast White & Silver */
+  --text-primary: #ffffff;  /* 100% pure brilliant white for headlines & metrics */
+  --text-body:    #f1f5f9;  /* crisp bright silver for body copy (slate-100) */
+  --text-muted:   #94a3b8;  /* clear, highly legible light slate (slate-400) */
+  --text-dim:     #64748b;  /* mid slate for timestamps (slate-500) */
+  --text-mono:    #e2e8f0;  /* bright mono for numbers & codes */
 
-  /* Brand accent */
-  --accent-blue:   #2563eb;
-  --accent-bright: #3b82f6;
-  --accent-glow:   rgba(37, 99, 235, 0.5);
+  /* Accents — Electric & Punchy on True Black */
+  --accent-blue:   #3b82f6;
+  --accent-bright: #60a5fa;
+  --accent-cyan:   #38bdf8;
+  --accent-emerald:#10b981;
+  --accent-glow:   rgba(59, 130, 246, 0.45);
 
-  /* Grid */
-  --grid-color: rgba(37, 99, 235, 0.09);
+  /* Clean High-Tech Grid on True Black */
+  --grid-color: rgba(255, 255, 255, 0.07);
+  --grid-dot:   rgba(255, 255, 255, 0.14);
 
-  /* Borders */
-  --border-dim:    rgba(37, 99, 235, 0.12);
-  --border-subtle: rgba(37, 99, 235, 0.22);
-  --border-accent: rgba(59, 130, 246, 0.45);
+  /* Borders — Crisp 1px Architectural Lines */
+  --border-dim:    rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --border-accent: rgba(255, 255, 255, 0.28);
+  --border-highlight: rgba(255, 255, 255, 0.45);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -37,45 +42,41 @@
 *, *::before, *::after { box-sizing: border-box; }
 
 ::selection {
-  background: rgba(37, 99, 235, 0.30);
-  color: #eef4ff;
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   BODY — GRID + DEEP BLUE BACKGROUND
+   BODY — TRUE BLACK WITH ARCHITECTURAL WHITE GRID
 ═══════════════════════════════════════════════════════════════ */
 body {
   margin: 0;
   background-color: var(--bg-base);
 
   /*
-   * Layered background:
-   * 1. Top-center electric blue radial glow (primary brand light)
-   * 2. Top-right indigo accent
-   * 3. Bottom-left cool cyan accent
-   * 4. Precise 40px grid in blue
-   * 5. Subtle dot overlay on grid intersections
+   * Architectural Black Grid:
+   * 1. Pure Pitch Black base (#000000)
+   * 2. High-precision 40px grid in clean subtle white
+   * 3. Crisp micro-dots at grid intersections (20px offset)
+   * 4. Very subtle top ambient vignette
    */
   background-image:
-    radial-gradient(ellipse 90% 60% at 50% -5%,  rgba(37, 99, 235, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 45% at 95% 15%,  rgba(99, 102, 241, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 5%  80%,  rgba(34, 211, 238, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
     linear-gradient(var(--grid-color) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
-    radial-gradient(circle, rgba(37, 99, 235, 0.15) 1px, transparent 1px);
+    radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
 
   background-size:
-    100% 100%,
-    100% 100%,
     100% 100%,
     40px 40px,
     40px 40px,
     40px 40px;
 
   background-position:
-    0 0, 0 0, 0 0,
-    0 0, 0 0,
-    20px 20px; /* offset dots to grid intersections */
+    0 0,
+    0 0,
+    0 0,
+    20px 20px;
 
   background-attachment: fixed;
   min-height: 100vh;
@@ -91,7 +92,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Heading overrides — premium weight + spacing */
+/* Heading overrides — brilliant white + high weight */
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
   font-family: 'Geist', 'DM Sans', sans-serif;
@@ -124,65 +125,65 @@ code, kbd, pre, samp {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   GLASS SURFACES — calibrated to the deep blue grid bg
+   GLASS SURFACES — OBSIDIAN GLASS ON PITCH BLACK
 ═══════════════════════════════════════════════════════════════ */
 
 /* Default card */
 .glass-card {
-  background: rgba(2, 10, 24, 0.82);
-  backdrop-filter: blur(22px) saturate(1.5);
-  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  background: rgba(12, 12, 16, 0.85);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border: 1px solid var(--border-subtle);
   box-shadow:
-    0 8px 32px -8px rgba(0, 0, 0, 0.75),
-    0 0 0 0.5px rgba(37, 99, 235, 0.10) inset,
-    inset 0 1px 0 rgba(120, 180, 255, 0.06);
+    0 10px 30px -5px rgba(0, 0, 0, 0.90),
+    0 0 0 0.5px rgba(255, 255, 255, 0.05) inset,
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* Glowing panel — chart canvas, featured sections */
 .glass-panel-glow {
-  background: rgba(1, 8, 20, 0.90);
-  backdrop-filter: blur(30px) saturate(1.7);
-  -webkit-backdrop-filter: blur(30px) saturate(1.7);
+  background: rgba(8, 8, 12, 0.92);
+  backdrop-filter: blur(30px) saturate(1.5);
+  -webkit-backdrop-filter: blur(30px) saturate(1.5);
   border: 1px solid var(--border-accent);
   box-shadow:
-    0 20px 60px -12px rgba(0, 0, 0, 0.80),
-    0 0 50px -15px rgba(37, 99, 235, 0.20),
-    inset 0 1px 0 rgba(120, 180, 255, 0.08),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+    0 24px 64px -12px rgba(0, 0, 0, 0.95),
+    0 0 40px -15px rgba(255, 255, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.60);
 }
 
 /* Flat panel — top bar, sidebars */
 .glass-panel {
-  background: rgba(2, 10, 24, 0.85);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(10, 10, 14, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-dim);
-  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.60);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.85);
 }
 
 /* Premium deep card — modals, dropdowns */
 .linear-card {
-  background: rgba(1, 7, 18, 0.95);
-  backdrop-filter: blur(32px) saturate(2);
-  -webkit-backdrop-filter: blur(32px) saturate(2);
+  background: rgba(8, 8, 10, 0.96);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
   border: 1px solid var(--border-subtle);
   box-shadow:
-    0 24px 64px -12px rgba(0, 0, 0, 0.90),
-    inset 0 1px 0 rgba(120, 180, 255, 0.07);
+    0 28px 72px -16px rgba(0, 0, 0, 0.98),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 /* ═══════════════════════════════════════════════════════════════
    NEON BORDERS
 ═══════════════════════════════════════════════════════════════ */
 .neon-border-flourish {
-  border: 1px solid rgba(37, 99, 235, 0.55);
-  box-shadow: 0 0 24px rgba(37, 99, 235, 0.28), inset 0 0 12px rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.65);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.32), inset 0 0 12px rgba(59, 130, 246, 0.08);
 }
 
 .neon-border-cyan {
-  border: 1px solid rgba(34, 211, 238, 0.40);
-  box-shadow: 0 0 24px rgba(34, 211, 238, 0.18), inset 0 0 12px rgba(34, 211, 238, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.50);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.22), inset 0 0 12px rgba(56, 189, 248, 0.06);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -190,43 +191,43 @@ code, kbd, pre, samp {
 ═══════════════════════════════════════════════════════════════ */
 .avatar-glow {
   box-shadow:
-    0 0 0 2px rgba(37, 99, 235, 0.40),
-    0 0 28px rgba(37, 99, 235, 0.45),
-    0 0 8px rgba(34, 211, 238, 0.25);
+    0 0 0 2px rgba(255, 255, 255, 0.30),
+    0 0 28px rgba(59, 130, 246, 0.45),
+    0 0 8px rgba(56, 189, 248, 0.30);
 }
 .avatar-glow:hover {
   box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.70),
-    0 0 40px rgba(37, 99, 235, 0.75),
+    0 0 0 2px rgba(255, 255, 255, 0.70),
+    0 0 40px rgba(59, 130, 246, 0.75),
     0 0 20px rgba(99, 102, 241, 0.45);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   GRADIENT TEXT
+   GRADIENT TEXT — CRISP & HIGH CONTRAST
 ═══════════════════════════════════════════════════════════════ */
 .text-gradient-brand {
-  background: linear-gradient(130deg, #93c5fd 0%, #3b82f6 40%, #818cf8 100%);
+  background: linear-gradient(130deg, #ffffff 0%, #93c5fd 50%, #60a5fa 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-flourish {
-  background: linear-gradient(130deg, #3b82f6 0%, #22d3ee 50%, #a78bfa 100%);
+  background: linear-gradient(130deg, #ffffff 0%, #38bdf8 50%, #818cf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-silver {
-  background: linear-gradient(130deg, #f0f6ff 0%, #a8c0e0 50%, #4d6a90 100%);
+  background: linear-gradient(130deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-hero {
-  background: linear-gradient(135deg, #ffffff 0%, #93c5fd 40%, #38bdf8 70%, #22d3ee 100%);
+  background: linear-gradient(180deg, #ffffff 30%, #e2e8f0 70%, #94a3b8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -247,14 +248,14 @@ code, kbd, pre, samp {
   font-weight: 600;
   font-size: 0.9rem;
   letter-spacing: -0.01em;
-  color: #fff;
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%);
-  border: 1px solid rgba(59, 130, 246, 0.6);
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.20);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.05) inset,
-    0 1px 0 rgba(255,255,255,0.10) inset,
-    0 4px 20px -4px rgba(37, 99, 235, 0.55),
-    0 1px 3px rgba(0,0,0,0.40);
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 1px 0 rgba(255,255,255,0.18) inset,
+    0 4px 20px -4px rgba(37, 99, 235, 0.65),
+    0 1px 3px rgba(0,0,0,0.50);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   cursor: pointer;
@@ -262,10 +263,10 @@ code, kbd, pre, samp {
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow:
-    0 0 0 1px rgba(255,255,255,0.08) inset,
-    0 1px 0 rgba(255,255,255,0.14) inset,
-    0 8px 32px -4px rgba(37, 99, 235, 0.75),
-    0 2px 8px rgba(0,0,0,0.50);
+    0 0 0 1px rgba(255,255,255,0.12) inset,
+    0 1px 0 rgba(255,255,255,0.25) inset,
+    0 8px 32px -4px rgba(37, 99, 235, 0.85),
+    0 2px 8px rgba(0,0,0,0.60);
 }
 .btn-primary:active { transform: translateY(0); }
 
@@ -276,25 +277,25 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.40);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SCROLLBARS — premium thin style
+   SCROLLBARS — sleek monochrome
 ═══════════════════════════════════════════════════════════════ */
 ::-webkit-scrollbar        { width: 5px; height: 5px; }
-::-webkit-scrollbar-track  { background: #01060f; }
-::-webkit-scrollbar-thumb  { background: #0d2447; border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+::-webkit-scrollbar-track  { background: #000000; }
+::-webkit-scrollbar-thumb  { background: #262626; border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: #525252; }
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #0d2447 transparent;
+  scrollbar-color: #262626 transparent;
 }
 .scrollbar-thin::-webkit-scrollbar        { width: 4px; height: 4px; }
 .scrollbar-thin::-webkit-scrollbar-track  { background: transparent; }
-.scrollbar-thin::-webkit-scrollbar-thumb  { background: #0d2447; border-radius: 4px; }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+.scrollbar-thin::-webkit-scrollbar-thumb  { background: #262626; border-radius: 4px; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #525252; }
 
 /* ═══════════════════════════════════════════════════════════════
    GRID UTILITIES

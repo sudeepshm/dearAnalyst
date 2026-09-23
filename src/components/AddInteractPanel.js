@@ -239,15 +239,15 @@ export default function AddInteractPanel({
   };
 
   return (
-    <div className="w-full glass-card rounded-2xl p-5 border border-slate-800 flex flex-col space-y-5">
+    <div className="w-full glass-card rounded-2xl p-5 border border-white/10 flex flex-col space-y-5">
       {/* Tab Switcher: Data Fields vs Add-Interact Feature */}
-      <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
+      <div className="flex items-center p-1 rounded-xl bg-black/60 border border-white/10 text-xs font-mono">
         <button
           onClick={() => setActiveTab('fields')}
           className={`flex-1 py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
             activeTab === 'fields'
-              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-white/15 text-white border border-white/40 shadow-sm font-semibold'
+              : 'text-slate-300 hover:text-white'
           }`}
         >
           <BarChart3 className="w-3.5 h-3.5" />
@@ -258,8 +258,8 @@ export default function AddInteractPanel({
           onClick={() => setActiveTab('interact')}
           className={`flex-1 py-2 px-3 rounded-lg font-medium transition flex items-center justify-center gap-1.5 ${
             activeTab === 'interact'
-              ? 'bg-blue-600/20 text-blue-300 border border-blue-500/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-white/15 text-white border border-white/40 shadow-sm font-semibold'
+              : 'text-slate-300 hover:text-white'
           }`}
         >
           <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -271,20 +271,20 @@ export default function AddInteractPanel({
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Worksheet Selection Bar */}
           {sheetNames.length > 0 && (
-            <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-2">
+            <div className="p-3.5 rounded-xl bg-[#0a0a0d] border border-white/10 space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-mono uppercase tracking-wider text-blue-400 font-semibold flex items-center gap-1.5">
-                  <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+                <label className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
                   <span>Source Worksheet</span>
                 </label>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-slate-300 border border-white/10">
                   Slide Specific
                 </span>
               </div>
               <select
                 value={selectedSheet}
                 onChange={(e) => onSheetChange && onSheetChange(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-slate-100 focus:outline-none focus:border-blue-400"
+                className="w-full bg-black border border-white/15 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white/40"
               >
                 {sheetNames.map((s) => (
                   <option key={s} value={s}>
@@ -298,15 +298,15 @@ export default function AddInteractPanel({
           {/* Chart Type Selector */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-mono uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-mono uppercase tracking-wider text-slate-300">
                 1. Select Graph Type ({chartOptions.length})
               </label>
               <button
                 type="button"
                 onClick={() => setIsCatalogueOpen(true)}
-                className="text-[11px] font-mono text-blue-300 hover:text-blue-200 flex items-center gap-1 bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-500/40 transition hover:border-blue-400 shadow-sm"
+                className="text-[11px] font-mono text-white hover:text-cyan-300 flex items-center gap-1 bg-white/10 px-2.5 py-1 rounded-md border border-white/20 transition hover:border-white/40 shadow-sm"
               >
-                <Sparkles className="w-3 h-3 text-blue-400" />
+                <Sparkles className="w-3 h-3 text-cyan-400" />
                 <span>Browse Catalogue</span>
               </button>
             </div>
@@ -320,11 +320,11 @@ export default function AddInteractPanel({
                     onClick={() => setChartType(item.id)}
                     className={`p-2 rounded-xl border text-xs font-mono flex items-center gap-2 transition text-left ${
                       isSelected
-                        ? 'border-blue-400 bg-blue-950/50 text-blue-300 shadow-md shadow-blue-500/20'
-                        : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                        ? 'border-white/50 bg-white/15 text-white shadow-md font-semibold'
+                        : 'border-white/10 bg-[#0a0a0d] text-slate-300 hover:border-white/30 hover:text-white'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-blue-400' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-cyan-400' : 'text-slate-400'}`} />
                     <span className="truncate">{item.label}</span>
                   </button>
                 );

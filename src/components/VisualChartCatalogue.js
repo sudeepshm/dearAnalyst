@@ -225,16 +225,16 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
   return (
     <section id="chart-catalogue" className="w-full py-16 px-4 sm:px-8 max-w-7xl mx-auto z-10">
       {/* Section Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-800/80">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-white/10">
         <div className="space-y-3 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono">
-            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-            <span>Interactive Visual Catalogue</span>
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-white">Interactive Visual Catalogue</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">
             The Analyst's Data Visualization Catalogue
           </h2>
-          <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
             Inspired by datavizcatalogue.com. Select the right analytical representation for your financial datasets,
             variance models, and multi-sheet workbooks.
           </p>
@@ -248,7 +248,7 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search 14 chart types..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 shadow-inner"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#0a0a0d] border border-white/15 text-xs font-mono text-white placeholder-slate-400 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/40 shadow-inner"
           />
         </div>
       </div>
@@ -264,13 +264,13 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
               onClick={() => setActiveCategory(cat.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono whitespace-nowrap transition-all duration-200 border ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600/25 to-indigo-600/20 text-blue-300 border-blue-500/60 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-105 font-bold'
-                  : 'bg-slate-900/70 text-slate-400 border-slate-800/90 hover:border-slate-700 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-blue-600/30 text-white border-blue-400/60 shadow-[0_0_20px_rgba(59,130,246,0.35)] scale-105 font-bold'
+                  : 'bg-[#0a0a0d] text-slate-300 border-white/10 hover:border-white/30 hover:text-white'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-400'}`} />
               <span>{cat.label}</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-blue-500/20 text-blue-300 border border-blue-500/40' : 'bg-slate-800 text-slate-500'}`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${isActive ? 'bg-blue-500/30 text-white border border-blue-400/50' : 'bg-white/10 text-slate-300'}`}>
                 {cat.id === 'all'
                   ? CATALOGUE_CHARTS.length
                   : CATALOGUE_CHARTS.filter((c) => c.category === cat.id).length}
@@ -287,11 +287,11 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
           return (
             <div
               key={chart.id}
-              className="group relative rounded-2xl bg-gradient-to-b from-[#0e172a]/95 via-[#0b1220]/90 to-[#060913]/95 border border-slate-800/90 hover:border-[#00ff87]/60 p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_35px_-5px_rgba(0,255,135,0.18)] overflow-hidden"
+              className="group relative rounded-2xl bg-[#0c0c10]/90 backdrop-blur-xl border border-white/10 hover:border-white/35 p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-8px_rgba(0,0,0,0.9)] overflow-hidden"
             >
               {/* Top ambient glow on hover */}
               <div
-                className="absolute -top-20 -right-20 w-36 h-36 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 pointer-events-none"
+                className="absolute -top-20 -right-20 w-36 h-36 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 pointer-events-none"
                 style={{ backgroundColor: chart.accentColor }}
               />
 
@@ -301,44 +301,44 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm"
                     style={{
-                      backgroundColor: `${chart.accentColor}18`,
-                      borderColor: `${chart.accentColor}45`,
+                      backgroundColor: `${chart.accentColor}20`,
+                      borderColor: `${chart.accentColor}55`,
                     }}
                   >
                     <Icon className="w-5 h-5" style={{ color: chart.accentColor }} />
                   </div>
-                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700/60">
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/5 text-slate-300 border border-white/10">
                     {chart.categoryLabel}
                   </span>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <h3 className="text-base font-bold text-white group-hover:text-[#00ff87] transition-colors font-display">
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors font-display">
                     {chart.title}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-1.5 leading-relaxed line-clamp-3">
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed line-clamp-3">
                     {chart.description}
                   </p>
                 </div>
 
                 {/* Best For Tag */}
-                <div className="pt-2 border-t border-slate-800/60 text-xs font-mono space-y-1.5">
-                  <div className="flex items-start gap-1.5 text-slate-300">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#00ff87] flex-shrink-0 mt-0.5" />
+                <div className="pt-2 border-t border-white/10 text-xs font-mono space-y-1.5">
+                  <div className="flex items-start gap-1.5 text-slate-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#10b981] flex-shrink-0 mt-0.5" />
                     <span className="text-[11px] leading-tight">
-                      <strong className="text-[#00ff87]">Best for:</strong> {chart.bestFor}
+                      <strong className="text-[#10b981]">Best for:</strong> {chart.bestFor}
                     </span>
                   </div>
 
-                  <div className="text-[10px] text-slate-500 bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800/70 truncate">
+                  <div className="text-[10px] text-slate-300 bg-black/60 px-2.5 py-1 rounded-md border border-white/10 truncate">
                     Data: {chart.dataReq}
                   </div>
                 </div>
               </div>
 
               {/* Action Button */}
-              <div className="pt-4 mt-4 border-t border-slate-800/60 flex items-center justify-between">
+              <div className="pt-4 mt-4 border-t border-white/10 flex items-center justify-between">
                 <button
                   onClick={() => {
                     if (onSelectChart) {
@@ -347,7 +347,7 @@ export default function VisualChartCatalogue({ onSelectChart, onStartStory }) {
                       onStartStory(chart.id);
                     }
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-800/80 group-hover:bg-gradient-to-r group-hover:from-[#1364e2] group-hover:via-[#2563eb] group-hover:to-[#9852d9] text-slate-200 group-hover:text-white text-xs font-mono font-bold transition-all duration-300 border border-slate-700/60 group-hover:border-blue-400 shadow-sm group-hover:shadow-[0_0_25px_rgba(19,100,226,0.45)]"
+                  className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white text-white hover:text-black text-xs font-mono font-bold transition-all duration-200 border border-white/15 hover:border-white shadow-sm"
                 >
                   <span>Use in Presentation</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />

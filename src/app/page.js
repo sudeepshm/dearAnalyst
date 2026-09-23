@@ -67,7 +67,7 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <div className="relative w-7 h-7 flex-shrink-0">
                   <div className="absolute inset-0 rounded-md bg-gradient-to-br from-blue-500 to-indigo-600" />
-                  <div className="absolute inset-[1px] rounded-[5px] bg-[#01060f] flex items-center justify-center">
+                  <div className="absolute inset-[1px] rounded-[5px] bg-black flex items-center justify-center">
                     <TrendingUp className="w-3.5 h-3.5 text-blue-400" />
                   </div>
                 </div>
@@ -75,22 +75,22 @@ export default function Home() {
                   <div className="brand-font text-[15px] text-white leading-none">
                     dear<span className="text-blue-400">Analyst</span>
                   </div>
-                  <div className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+                  <div className="font-mono text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
                     DATA · INSIGHT · IMPACT
                   </div>
                 </div>
               </div>
 
               {/* Links */}
-              <div className="flex items-center gap-6 text-[11px] font-mono text-[var(--text-muted)]">
-                <a href="#chart-catalogue" className="hover:text-blue-400 transition-colors">Visual Catalogue</a>
-                <span className="text-[var(--border-dim)]">·</span>
-                <button onClick={() => handleStartStory()} className="hover:text-blue-400 transition-colors">Upload Workbook</button>
-                <span className="text-[var(--border-dim)]">·</span>
-                <span className="text-[var(--text-muted)]/50">Apache ECharts 5.5</span>
+              <div className="flex items-center gap-6 text-[11px] font-mono text-slate-300">
+                <a href="#chart-catalogue" className="hover:text-white transition-colors">Visual Catalogue</a>
+                <span className="text-white/20">·</span>
+                <button onClick={() => handleStartStory()} className="hover:text-white transition-colors">Upload Workbook</button>
+                <span className="text-white/20">·</span>
+                <span className="text-slate-400">Apache ECharts 5.5</span>
               </div>
 
-              <div className="text-[10px] font-mono text-[var(--text-muted)]/50">
+              <div className="text-[10px] font-mono text-slate-400">
                 © 2026 dearAnalyst · Built for financial intelligence
               </div>
             </div>
@@ -105,15 +105,15 @@ export default function Home() {
           <div className="w-full px-6 sm:px-10 py-4 border-b border-[var(--border-dim)] glass-panel flex items-center justify-between">
             <button
               onClick={() => setCurrentStep('hero')}
-              className="flex items-center gap-2 text-[11px] font-mono text-[var(--text-muted)] hover:text-blue-400 transition-colors"
+              className="flex items-center gap-2 text-[11px] font-mono text-slate-300 hover:text-white transition-colors"
             >
               <span>←</span> Back to Home
             </button>
             <div className="flex items-center gap-2.5">
-              <FileSpreadsheet className="w-4 h-4 text-blue-400" />
+              <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
               <span className="brand-font text-[15px] text-white">dear<span className="text-blue-400">Analyst</span></span>
             </div>
-            <div className="text-[11px] font-mono text-[var(--text-muted)]">
+            <div className="text-[11px] font-mono text-slate-400">
               Step 1 of 2
             </div>
           </div>

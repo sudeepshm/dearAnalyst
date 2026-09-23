@@ -307,8 +307,8 @@ export default function StorySlideStudio({
                 <span>Flourish Deck</span>
               </span>
             </div>
-            <p className="text-xs font-mono text-slate-400">
-              Active File: <strong className="text-blue-400">{dataset.fileName}</strong> {sheetNames.length > 1 ? `(${sheetNames.length} sheets • Active on Page ${activeSlideIndex + 1}: "${currentSlideSheetName}")` : `(${activeSheetData.totalRows} records)`}
+            <p className="text-xs font-mono text-slate-300">
+              Active File: <strong className="text-cyan-400">{dataset.fileName}</strong> {sheetNames.length > 1 ? `(${sheetNames.length} sheets • Active on Page ${activeSlideIndex + 1}: "${currentSlideSheetName}")` : `(${activeSheetData.totalRows} records)`}
             </p>
           </div>
         </div>
@@ -320,8 +320,8 @@ export default function StorySlideStudio({
             onClick={() => setIsBroadcastMode(!isBroadcastMode)}
             className={`px-3 py-1.5 rounded-xl text-xs font-mono transition flex items-center gap-1.5 border ${
               isBroadcastMode
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold border-blue-400 shadow-[0_0_20px_rgba(19,100,226,0.5)]'
-                : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 border-slate-800'
+                ? 'bg-blue-600 text-white font-bold border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.5)]'
+                : 'bg-[#0a0a0d] text-slate-200 hover:text-white hover:bg-white/10 border-white/15'
             }`}
             title="Toggle YouTube Presentation / Broadcast Mode"
           >
@@ -331,14 +331,14 @@ export default function StorySlideStudio({
 
           <button
             onClick={onResetData}
-            className="px-3 py-1.5 rounded-xl text-xs font-mono text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition"
+            className="px-3 py-1.5 rounded-xl text-xs font-mono text-slate-200 hover:text-white hover:bg-white/10 border border-white/15 transition"
           >
             Switch Excel
           </button>
 
           <button
             onClick={handleAddNewSlide}
-            className="px-3.5 py-1.5 rounded-xl text-xs font-mono text-blue-300 bg-blue-950/50 hover:bg-blue-900/50 border border-blue-700/50 transition flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-mono text-white bg-white/10 hover:bg-white/20 border border-white/20 transition flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add New Page</span>
@@ -409,19 +409,19 @@ export default function StorySlideStudio({
                 onClick={() => setActiveSlideIndex(idx)}
                 className={`group flex-shrink-0 cursor-pointer px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center gap-3 transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-950/90 to-indigo-950/80 border-blue-500/60 text-blue-300 shadow-[0_0_20px_rgba(19,100,226,0.25)] scale-[1.02] font-semibold'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    ? 'bg-white/15 border-white/50 text-white shadow-[0_0_20px_rgba(255,255,255,0.12)] scale-[1.02] font-semibold'
+                    : 'bg-[#0a0a0d] border-white/10 text-slate-300 hover:border-white/30 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-blue-400 shadow-[0_0_8px_#1364e2]' : 'bg-slate-600'}`} />
-                  <span className="font-semibold">Page {idx + 1}</span>
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-cyan-400 shadow-[0_0_8px_#38bdf8]' : 'bg-slate-600'}`} />
+                  <span className="font-semibold text-white">Page {idx + 1}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px]">
-                  <ChartIcon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
-                  <span className={isActive ? 'text-slate-200' : 'text-slate-400'}>{slide.chartType}</span>
+                  <ChartIcon className={`w-3.5 h-3.5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                  <span className={isActive ? 'text-white' : 'text-slate-300'}>{slide.chartType}</span>
                   {sheetNames.length > 1 && (
-                    <span className="text-[10px] text-cyan-400 font-mono px-1.5 py-0.2 rounded bg-cyan-950/60 border border-cyan-800/60 truncate max-w-[80px]">
+                    <span className="text-[10px] text-cyan-300 font-mono px-1.5 py-0.2 rounded bg-cyan-950/80 border border-cyan-700/60 truncate max-w-[80px]">
                       {slideSheet}
                     </span>
                   )}
@@ -590,28 +590,28 @@ export default function StorySlideStudio({
           />
 
           {/* Visualizer: Apache ECharts Canvas Box */}
-          <div className="glass-panel-glow rounded-2xl p-5 border border-slate-800 flex flex-col space-y-3 relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+          <div className="glass-panel-glow rounded-2xl p-5 border border-white/10 flex flex-col space-y-3 relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse" />
-                <h3 className="text-sm font-bold text-slate-100 font-display uppercase tracking-wider">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+                <h3 className="text-sm font-bold text-white font-display uppercase tracking-wider">
                   Live Visualizer — {currentSlide.chartType.toUpperCase()}
                 </h3>
               </div>
-              <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-300">
                 <span>Interactions:</span>
-                <span className="text-blue-400 font-semibold">
+                <span className="text-cyan-400 font-semibold">
                   {currentSlide.interactions.enableTooltip ? 'Tooltips ON' : 'Tooltips OFF'}
                 </span>
                 <span>&bull;</span>
-                <span className="text-cyan-400 font-semibold">
+                <span className="text-blue-400 font-semibold">
                   {currentSlide.interactions.enableZoom ? 'Zoom ON' : 'Zoom OFF'}
                 </span>
               </div>
             </div>
 
             {/* Apache ECharts Container with Round Analyst Avatar in Corner */}
-            <div className={`w-full ${isBroadcastMode ? 'h-[480px]' : 'h-[400px]'} rounded-xl bg-slate-950/70 p-2 relative overflow-hidden transition-all duration-300`}>
+            <div className={`w-full ${isBroadcastMode ? 'h-[480px]' : 'h-[400px]'} rounded-xl bg-black/80 p-2 relative overflow-hidden transition-all duration-300 border border-white/5`}>
               {/* Round Analyst Avatar Watermark in Top-Right Corner */}
               <div className="absolute top-3 right-3 z-20 flex items-center gap-2.5 bg-slate-950/85 backdrop-blur-xl px-2.5 py-1.5 rounded-full border border-blue-500/40 shadow-[0_0_20px_rgba(19,100,226,0.35)] hover:border-blue-400 hover:shadow-[0_0_35px_rgba(19,100,226,0.55)] transition duration-300 group select-none">
                 <div className="relative">
@@ -664,10 +664,10 @@ export default function StorySlideStudio({
           </div>
 
           {/* Narrative / Commentary Text Box with Quick Insert Chips */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 border-l-4 border-l-blue-500">
+          <div className="glass-card rounded-2xl p-5 border border-white/10 space-y-3 border-l-4 border-l-cyan-400">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold text-blue-300">
-                <FileText className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <FileText className="w-4 h-4 text-cyan-400" />
                 <span>Analyst Story Narrative (Page {activeSlideIndex + 1})</span>
               </div>
               <span className="text-xs font-mono text-slate-400">
@@ -677,7 +677,7 @@ export default function StorySlideStudio({
 
             {/* Quick Financial Insight Chips for YouTubers */}
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-[10px] font-mono text-slate-400">Quick Insert:</span>
+              <span className="text-[10px] font-mono text-slate-300">Quick Insert:</span>
               {[
                 { label: '+ Revenue Driver', text: '\n- **Revenue Catalyst:** Strong quarterly expansion driven by volume growth and core customer demand.' },
                 { label: '+ Margin Trajectory', text: '\n- **Operating Margin:** Operating leverage expansion with efficiency gains and input cost stabilization.' },
@@ -691,7 +691,7 @@ export default function StorySlideStudio({
                     const existing = currentSlide.narrativeText || '';
                     updateCurrentSlide({ narrativeText: existing + chip.text });
                   }}
-                  className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-900 border border-slate-750 hover:border-blue-500/60 text-slate-300 hover:text-blue-300 transition"
+                  className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#0a0a0d] border border-white/15 hover:border-cyan-400/60 text-slate-200 hover:text-white transition"
                 >
                   {chip.label}
                 </button>
@@ -703,13 +703,13 @@ export default function StorySlideStudio({
               value={currentSlide.narrativeText}
               onChange={(e) => updateCurrentSlide({ narrativeText: e.target.value })}
               placeholder="Add your narrative, commentary, key findings, takeaways, or bullet points for this specific page..."
-              className="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-3.5 text-xs sm:text-sm font-sans text-slate-200 leading-relaxed focus:outline-none focus:border-blue-400 resize-y"
+              className="w-full bg-black/90 border border-white/15 rounded-xl p-3.5 text-xs sm:text-sm font-sans text-white placeholder-slate-400 leading-relaxed focus:outline-none focus:border-white/40 resize-y"
             />
 
             {/* Save & Next Page Button */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+              <div className="text-xs font-mono text-slate-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                 <span>All changes auto-saved to current page state</span>
               </div>
 
