@@ -4,7 +4,7 @@
 
 ---
 
-## 🌟 Key Architecture & Features
+##  Key Architecture & Features
 
 1. **High-Tech Hero Showcase & Brand Identity**
    - Canvas-rendered real-time candlestick price action with glowing wicks, 5-period moving average spline, and live volume bars.
@@ -38,7 +38,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18.x or higher
@@ -72,7 +72,7 @@ If you want to test the full application immediately without installing Node.js:
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```
 dearAnalyst/
@@ -109,5 +109,5 @@ dearAnalyst/
 
 ---
 
-## 📄 License
+##  License
 MIT License. Built for financial analysts, data storytellers, and developers.
